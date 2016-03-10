@@ -1,0 +1,3994 @@
+diff -ruN npm/lib/utils/rename.js npm/lib/utils/rename.js
+--- npm/lib/utils/rename.js	2016-03-02 22:20:45.000000000 +0000
++++ npm/lib/utils/rename.js	2016-03-10 15:15:28.189645000 +0000
+@@ -1,12 +1,12 @@
+ 'use strict'
+-var fs = require('graceful-fs')
++var fs = require('fs-extra')
+ var SaveStack = require('./save-stack.js')
+ 
+ module.exports = rename
+ 
+ function rename (from, to, cb) {
+   var saved = new SaveStack(rename)
+-  fs.rename(from, to, function (er) {
++  fs.move(from, to, function (er) {
+     if (er) {
+       return cb(saved.completeWith(er))
+     } else {
+diff -ruN npm/node_modules/fs-extra/CHANGELOG.md npm/node_modules/fs-extra/CHANGELOG.md
+--- npm/node_modules/fs-extra/CHANGELOG.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/CHANGELOG.md	2016-01-27 15:47:51.000000000 +0000
+@@ -0,0 +1,718 @@
++0.26.5 / 2016-01-27
++-------------------
++- `copy()` with two arguments (w/o callback) was broken. See: [#215][#215]
++
++0.26.4 / 2016-01-05
++-------------------
++- `copySync()` made `preserveTimestamps` default consistent with `copy()` which is `false`. See: [#208][#208]
++
++0.26.3 / 2015-12-17
++-------------------
++- fixed `copy()` hangup in copying blockDevice / characterDevice / `/dev/null`. See: [#193][#193]
++
++0.26.2 / 2015-11-02
++-------------------
++- fixed `outputJson{Sync}()` spacing adherence to `fs.spaces`
++
++0.26.1 / 2015-11-02
++-------------------
++- fixed `copySync()` when `clogger=true` and the destination is read only. See: [#190][#190]
++
++0.26.0 / 2015-10-25
++-------------------
++- extracted the `walk()` function into its own module [`klaw`](https://github.com/jprichardson/node-klaw).
++
++0.25.0 / 2015-10-24
++-------------------
++- now has a file walker `walk()`
++
++0.24.0 / 2015-08-28
++-------------------
++- removed alias `delete()` and `deleteSync()`. See: [#171][#171]
++
++0.23.1 / 2015-08-07
++-------------------
++- Better handling of errors for `move()` when moving across devices. [#170][#170]
++- `ensureSymlink()` and `ensureLink()` should not throw errors if link exists. [#169][#169]
++
++0.23.0 / 2015-08-06
++-------------------
++- added `ensureLink{Sync}()` and `ensureSymlink{Sync}()`. See: [#165][#165]
++
++0.22.1 / 2015-07-09
++-------------------
++- Prevent calling `hasMillisResSync()` on module load. See: [#149][#149].
++Fixes regression that was introduced in `0.21.0`.
++
++0.22.0 / 2015-07-09
++-------------------
++- preserve permissions / ownership in `copy()`. See: [#54][#54]
++
++0.21.0 / 2015-07-04
++-------------------
++- add option to preserve timestamps in `copy()` and `copySync()`. See: [#141][#141]
++- updated `graceful-fs@3.x` to `4.x`. This brings in features from `amazing-graceful-fs` (much cleaner code / less hacks)
++
++0.20.1 / 2015-06-23
++-------------------
++- fixed regression caused by latest jsonfile update: See: https://github.com/jprichardson/node-jsonfile/issues/26
++
++0.20.0 / 2015-06-19
++-------------------
++- removed `jsonfile` aliases with `File` in the name, they weren't documented and probably weren't in use e.g.
++this package had both `fs.readJsonFile` and `fs.readJson` that were aliases to each other, now use `fs.readJson`.
++- preliminary walker created. Intentionally not documented. If you use it, it will almost certainly change and break your code.
++- started moving tests inline
++- upgraded to `jsonfile@2.1.0`, can now pass JSON revivers/replacers to `readJson()`, `writeJson()`, `outputJson()`
++
++0.19.0 / 2015-06-08
++-------------------
++- `fs.copy()` had support for Node v0.8, dropped support
++
++0.18.4 / 2015-05-22
++-------------------
++- fixed license field according to this: [#136][#136] and https://github.com/npm/npm/releases/tag/v2.10.0
++
++0.18.3 / 2015-05-08
++-------------------
++- bugfix: handle `EEXIST` when clobbering on some Linux systems. [#134][#134]
++
++0.18.2 / 2015-04-17
++-------------------
++- bugfix: allow `F_OK` ([#120][#120])
++
++0.18.1 / 2015-04-15
++-------------------
++- improved windows support for `move()` a bit. https://github.com/jprichardson/node-fs-extra/commit/92838980f25dc2ee4ec46b43ee14d3c4a1d30c1b
++- fixed a lot of tests for Windows (appveyor)
++
++0.18.0 / 2015-03-31
++-------------------
++- added `emptyDir()` and `emptyDirSync()`
++
++0.17.0 / 2015-03-28
++-------------------
++- `copySync` added `clobber` option (before always would clobber, now if `clobber` is `false` it throws an error if the destination exists).
++**Only works with files at the moment.**
++- `createOutputStream()` added. See: [#118][#118]
++
++0.16.5 / 2015-03-08
++-------------------
++- fixed `fs.move` when `clobber` is `true` and destination is a directory, it should clobber. [#114][#114]
++
++0.16.4 / 2015-03-01
++-------------------
++- `fs.mkdirs` fix infinite loop on Windows. See: See https://github.com/substack/node-mkdirp/pull/74 and https://github.com/substack/node-mkdirp/issues/66
++
++0.16.3 / 2015-01-28
++-------------------
++- reverted https://github.com/jprichardson/node-fs-extra/commit/1ee77c8a805eba5b99382a2591ff99667847c9c9
++
++
++0.16.2 / 2015-01-28
++-------------------
++- fixed `fs.copy` for Node v0.8 (support is temporary and will be removed in the near future)
++
++0.16.1 / 2015-01-28
++-------------------
++- if `setImmediate` is not available, fall back to `process.nextTick`
++
++0.16.0 / 2015-01-28
++-------------------
++- bugfix `fs.move()` into itself. Closes #104
++- bugfix `fs.move()` moving directory across device. Closes #108
++- added coveralls support
++- bugfix: nasty multiple callback `fs.copy()` bug. Closes #98
++- misc fs.copy code cleanups
++
++0.15.0 / 2015-01-21
++-------------------
++- dropped `ncp`, imported code in
++- because of previous, now supports `io.js`
++- `graceful-fs` is now a dependency
++
++0.14.0 / 2015-01-05
++-------------------
++- changed `copy`/`copySync` from `fs.copy(src, dest, [filters], callback)` to `fs.copy(src, dest, [options], callback)` [#100][#100]
++- removed mockfs tests for mkdirp (this may be temporary, but was getting in the way of other tests)
++
++0.13.0 / 2014-12-10
++-------------------
++- removed `touch` and `touchSync` methods (they didn't handle permissions like UNIX touch)
++- updated `"ncp": "^0.6.0"` to `"ncp": "^1.0.1"`
++- imported `mkdirp` => `minimist` and `mkdirp` are no longer dependences, should now appease people who wanted `mkdirp` to be `--use_strict` safe. See [#59]([#59][#59])
++
++0.12.0 / 2014-09-22
++-------------------
++- copy symlinks in `copySync()` [#85][#85]
++
++0.11.1 / 2014-09-02
++-------------------
++- bugfix `copySync()` preserve file permissions [#80][#80]
++
++0.11.0 / 2014-08-11
++-------------------
++- upgraded `"ncp": "^0.5.1"` to `"ncp": "^0.6.0"`
++- upgrade `jsonfile": "^1.2.0"` to `jsonfile": "^2.0.0"` => on write, json files now have `\n` at end. Also adds `options.throws` to `readJsonSync()`
++see https://github.com/jprichardson/node-jsonfile#readfilesyncfilename-options for more details.
++
++0.10.0 / 2014-06-29
++------------------
++* bugfix: upgaded `"jsonfile": "~1.1.0"` to `"jsonfile": "^1.2.0"`, bumped minor because of `jsonfile` dep change
++from `~` to `^`. #67
++
++0.9.1 / 2014-05-22
++------------------
++* removed Node.js `0.8.x` support, `0.9.0` was published moments ago and should have been done there
++
++0.9.0 / 2014-05-22
++------------------
++* upgraded `ncp` from `~0.4.2` to `^0.5.1`, #58
++* upgraded `rimraf` from `~2.2.6` to `^2.2.8`
++* upgraded `mkdirp` from `0.3.x` to `^0.5.0`
++* added methods `ensureFile()`, `ensureFileSync()`
++* added methods `ensureDir()`, `ensureDirSync()` #31
++* added `move()` method. From: https://github.com/andrewrk/node-mv
++
++
++0.8.1 / 2013-10-24
++------------------
++* copy failed to return an error to the callback if a file doesn't exist (ulikoehler #38, #39)
++
++0.8.0 / 2013-10-14
++------------------
++* `filter` implemented on `copy()` and `copySync()`. (Srirangan / #36)
++
++0.7.1 / 2013-10-12
++------------------
++* `copySync()` implemented (Srirangan / #33)
++* updated to the latest `jsonfile` version `1.1.0` which gives `options` params for the JSON methods. Closes #32
++
++0.7.0 / 2013-10-07
++------------------
++* update readme conventions
++* `copy()` now works if destination directory does not exist. Closes #29
++
++0.6.4 / 2013-09-05
++------------------
++* changed `homepage` field in package.json to remove NPM warning
++
++0.6.3 / 2013-06-28
++------------------
++* changed JSON spacing default from `4` to `2` to follow Node conventions
++* updated `jsonfile` dep
++* updated `rimraf` dep
++
++0.6.2 / 2013-06-28
++------------------
++* added .npmignore, #25
++
++0.6.1 / 2013-05-14
++------------------
++* modified for `strict` mode, closes #24
++* added `outputJson()/outputJsonSync()`, closes #23
++
++0.6.0 / 2013-03-18
++------------------
++* removed node 0.6 support
++* added node 0.10 support
++* upgraded to latest `ncp` and `rimraf`.
++* optional `graceful-fs` support. Closes #17
++
++
++0.5.0 / 2013-02-03
++------------------
++* Removed `readTextFile`.
++* Renamed `readJSONFile` to `readJSON` and `readJson`, same with write.
++* Restructured documentation a bit. Added roadmap.
++
++0.4.0 / 2013-01-28
++------------------
++* Set default spaces in `jsonfile` from 4 to 2.
++* Updated `testutil` deps for tests.
++* Renamed `touch()` to `createFile()`
++* Added `outputFile()` and `outputFileSync()`
++* Changed creation of testing diretories so the /tmp dir is not littered.
++* Added `readTextFile()` and `readTextFileSync()`.
++
++0.3.2 / 2012-11-01
++------------------
++* Added `touch()` and `touchSync()` methods.
++
++0.3.1 / 2012-10-11
++------------------
++* Fixed some stray globals.
++
++0.3.0 / 2012-10-09
++------------------
++* Removed all CoffeeScript from tests.
++* Renamed `mkdir` to `mkdirs`/`mkdirp`.
++
++0.2.1 / 2012-09-11
++------------------
++* Updated `rimraf` dep.
++
++0.2.0 / 2012-09-10
++------------------
++* Rewrote module into JavaScript. (Must still rewrite tests into JavaScript)
++* Added all methods of [jsonfile][https://github.com/jprichardson/node-jsonfile]
++* Added Travis-CI.
++
++0.1.3 / 2012-08-13
++------------------
++* Added method `readJSONFile`.
++
++0.1.2 / 2012-06-15
++------------------
++* Bug fix: `deleteSync()` didn't exist.
++* Verified Node v0.8 compatibility.
++
++0.1.1 / 2012-06-15
++------------------
++* Fixed bug in `remove()`/`delete()` that wouldn't execute the function if a callback wasn't passed.
++
++0.1.0 / 2012-05-31
++------------------
++* Renamed `copyFile()` to `copy()`. `copy()` can now copy directories (recursively) too.
++* Renamed `rmrf()` to `remove()`.
++* `remove()` aliased with `delete()`.
++* Added `mkdirp` capabilities. Named: `mkdir()`. Hides Node.js native `mkdir()`.
++* Instead of exporting the native `fs` module with new functions, I now copy over the native methods to a new object and export that instead.
++
++0.0.4 / 2012-03-14
++------------------
++* Removed CoffeeScript dependency
++
++0.0.3 / 2012-01-11
++------------------
++* Added methods rmrf and rmrfSync
++* Moved tests from Jasmine to Mocha
++
++<!--- fse.copy throws error when only src and dest provided [bug, documentation, feature-copy] -->
++[#215]: https://github.com/jprichardson/node-fs-extra/pull/215
++<!--- Fixing copySync anchor tag -->
++[#214]: https://github.com/jprichardson/node-fs-extra/pull/214
++<!--- Merge extfs with this repo -->
++[#213]: https://github.com/jprichardson/node-fs-extra/issues/213
++<!--- Update year to 2016 in README.md and LICENSE -->
++[#212]: https://github.com/jprichardson/node-fs-extra/pull/212
++<!--- Not copying all files -->
++[#211]: https://github.com/jprichardson/node-fs-extra/issues/211
++<!--- copy/copySync behave differently when copying a symbolic file [bug, documentation, feature-copy] -->
++[#210]: https://github.com/jprichardson/node-fs-extra/issues/210
++<!--- In Windows invalid directory name causes infinite loop in ensureDir(). [bug] -->
++[#209]: https://github.com/jprichardson/node-fs-extra/issues/209
++<!--- fix options.preserveTimestamps to false in copy-sync by default [feature-copy] -->
++[#208]: https://github.com/jprichardson/node-fs-extra/pull/208
++<!--- Add `compare` suite of functions -->
++[#207]: https://github.com/jprichardson/node-fs-extra/issues/207
++<!--- outputFileSync -->
++[#206]: https://github.com/jprichardson/node-fs-extra/issues/206
++<!--- fix documents about copy/copySync [documentation, feature-copy] -->
++[#205]: https://github.com/jprichardson/node-fs-extra/issues/205
++<!--- allow copy of block and character device files -->
++[#204]: https://github.com/jprichardson/node-fs-extra/pull/204
++<!--- copy method's argument options couldn't be undefined [bug, feature-copy] -->
++[#203]: https://github.com/jprichardson/node-fs-extra/issues/203
++<!--- why there is not a walkSync method? -->
++[#202]: https://github.com/jprichardson/node-fs-extra/issues/202
++<!--- clobber for directories [feature-copy, future] -->
++[#201]: https://github.com/jprichardson/node-fs-extra/issues/201
++<!--- 'copySync' doesn't work in sync -->
++[#200]: https://github.com/jprichardson/node-fs-extra/issues/200
++<!--- fs.copySync fails if user does not own file [bug, feature-copy] -->
++[#199]: https://github.com/jprichardson/node-fs-extra/issues/199
++<!--- handle copying between identical files [feature-copy] -->
++[#198]: https://github.com/jprichardson/node-fs-extra/issues/198
++<!--- Missing documentation for `outputFile` `options` 3rd parameter [documentation] -->
++[#197]: https://github.com/jprichardson/node-fs-extra/issues/197
++<!--- copy filter: async function and/or function called with `fs.stat` result [future] -->
++[#196]: https://github.com/jprichardson/node-fs-extra/issues/196
++<!--- How to override with outputFile? -->
++[#195]: https://github.com/jprichardson/node-fs-extra/issues/195
++<!--- allow ensureFile(Sync) to provide data to be written to created file -->
++[#194]: https://github.com/jprichardson/node-fs-extra/pull/194
++<!--- `fs.copy` fails silently if source file is /dev/null [bug, feature-copy] -->
++[#193]: https://github.com/jprichardson/node-fs-extra/issues/193
++<!--- Remove fs.createOutputStream() -->
++[#192]: https://github.com/jprichardson/node-fs-extra/issues/192
++<!--- How to copy symlinks to target as normal folders [feature-copy] -->
++[#191]: https://github.com/jprichardson/node-fs-extra/issues/191
++<!--- copySync to overwrite destination file if readonly and clobber true -->
++[#190]: https://github.com/jprichardson/node-fs-extra/pull/190
++<!--- move.test fix to support CRLF on Windows -->
++[#189]: https://github.com/jprichardson/node-fs-extra/pull/189
++<!--- move.test failing on windows platform -->
++[#188]: https://github.com/jprichardson/node-fs-extra/issues/188
++<!--- Not filter each file, stops on first false -->
++[#187]: https://github.com/jprichardson/node-fs-extra/issues/187
++<!--- Do you need a .size() function in this module? [future] -->
++[#186]: https://github.com/jprichardson/node-fs-extra/issues/186
++<!--- Doesn't work on NodeJS v4.x -->
++[#185]: https://github.com/jprichardson/node-fs-extra/issues/185
++<!--- CLI equivalent for fs-extra -->
++[#184]: https://github.com/jprichardson/node-fs-extra/issues/184
++<!--- with clobber true, copy and copySync behave differently if destination file is read only [bug, feature-copy] -->
++[#183]: https://github.com/jprichardson/node-fs-extra/issues/183
++<!--- ensureDir(dir, callback) second callback parameter not specified -->
++[#182]: https://github.com/jprichardson/node-fs-extra/issues/182
++<!--- Add ability to remove file securely [enhancement, wont-fix] -->
++[#181]: https://github.com/jprichardson/node-fs-extra/issues/181
++<!--- Filter option doesn't work the same way in copy and copySync [bug, feature-copy] -->
++[#180]: https://github.com/jprichardson/node-fs-extra/issues/180
++<!--- Include opendir -->
++[#179]: https://github.com/jprichardson/node-fs-extra/issues/179
++<!--- ENOTEMPTY is thrown on removeSync  -->
++[#178]: https://github.com/jprichardson/node-fs-extra/issues/178
++<!--- fix `remove()` wildcards (introduced by rimraf) [feature-remove] -->
++[#177]: https://github.com/jprichardson/node-fs-extra/issues/177
++<!--- createOutputStream doesn't emit 'end' event -->
++[#176]: https://github.com/jprichardson/node-fs-extra/issues/176
++<!--- [Feature Request].moveSync support [feature-move, future] -->
++[#175]: https://github.com/jprichardson/node-fs-extra/issues/175
++<!--- Fix copy formatting and document options.filter -->
++[#174]: https://github.com/jprichardson/node-fs-extra/pull/174
++<!--- Feature Request: writeJson should mkdirs -->
++[#173]: https://github.com/jprichardson/node-fs-extra/issues/173
++<!--- rename `clobber` flags to `overwrite` -->
++[#172]: https://github.com/jprichardson/node-fs-extra/issues/172
++<!--- remove unnecessary aliases -->
++[#171]: https://github.com/jprichardson/node-fs-extra/issues/171
++<!--- More robust handling of errors moving across virtual drives -->
++[#170]: https://github.com/jprichardson/node-fs-extra/pull/170
++<!--- suppress ensureLink & ensureSymlink dest exists error -->
++[#169]: https://github.com/jprichardson/node-fs-extra/pull/169
++<!--- suppress ensurelink dest exists error -->
++[#168]: https://github.com/jprichardson/node-fs-extra/pull/168
++<!--- Adds basic (string, buffer) support for ensureFile content [future] -->
++[#167]: https://github.com/jprichardson/node-fs-extra/pull/167
++<!--- Adds basic (string, buffer) support for ensureFile content -->
++[#166]: https://github.com/jprichardson/node-fs-extra/pull/166
++<!--- ensure for link & symlink -->
++[#165]: https://github.com/jprichardson/node-fs-extra/pull/165
++<!--- Feature Request: ensureFile to take optional argument for file content -->
++[#164]: https://github.com/jprichardson/node-fs-extra/issues/164
++<!--- ouputJson not formatted out of the box [bug] -->
++[#163]: https://github.com/jprichardson/node-fs-extra/issues/163
++<!--- ensure symlink & link -->
++[#162]: https://github.com/jprichardson/node-fs-extra/pull/162
++<!--- ensure symlink & link -->
++[#161]: https://github.com/jprichardson/node-fs-extra/pull/161
++<!--- ensure symlink & link -->
++[#160]: https://github.com/jprichardson/node-fs-extra/pull/160
++<!--- ensure symlink & link -->
++[#159]: https://github.com/jprichardson/node-fs-extra/pull/159
++<!--- Feature Request: ensureLink and ensureSymlink methods -->
++[#158]: https://github.com/jprichardson/node-fs-extra/issues/158
++<!--- writeJson isn't formatted -->
++[#157]: https://github.com/jprichardson/node-fs-extra/issues/157
++<!--- Promise.promisifyAll doesn't work for some methods -->
++[#156]: https://github.com/jprichardson/node-fs-extra/issues/156
++<!--- Readme -->
++[#155]: https://github.com/jprichardson/node-fs-extra/issues/155
++<!--- /tmp/millis-test-sync -->
++[#154]: https://github.com/jprichardson/node-fs-extra/issues/154
++<!--- Make preserveTimes also work on read-only files. Closes #152 -->
++[#153]: https://github.com/jprichardson/node-fs-extra/pull/153
++<!--- fs.copy fails for read-only files with preserveTimestamp=true [feature-copy] -->
++[#152]: https://github.com/jprichardson/node-fs-extra/issues/152
++<!--- TOC does not work correctly on npm [documentation] -->
++[#151]: https://github.com/jprichardson/node-fs-extra/issues/151
++<!--- Remove test file fixtures, create with code. -->
++[#150]: https://github.com/jprichardson/node-fs-extra/issues/150
++<!--- /tmp/millis-test-sync -->
++[#149]: https://github.com/jprichardson/node-fs-extra/issues/149
++<!--- split out `Sync` methods in documentation -->
++[#148]: https://github.com/jprichardson/node-fs-extra/issues/148
++<!--- Adding rmdirIfEmpty -->
++[#147]: https://github.com/jprichardson/node-fs-extra/issues/147
++<!--- ensure test.js works -->
++[#146]: https://github.com/jprichardson/node-fs-extra/pull/146
++<!--- Add `fs.exists` and `fs.existsSync` if it doesn't exist. -->
++[#145]: https://github.com/jprichardson/node-fs-extra/issues/145
++<!--- tests failing -->
++[#144]: https://github.com/jprichardson/node-fs-extra/issues/144
++<!--- update graceful-fs -->
++[#143]: https://github.com/jprichardson/node-fs-extra/issues/143
++<!--- PrependFile Feature -->
++[#142]: https://github.com/jprichardson/node-fs-extra/issues/142
++<!--- Add option to preserve timestamps -->
++[#141]: https://github.com/jprichardson/node-fs-extra/pull/141
++<!--- Json file reading fails with 'utf8' -->
++[#140]: https://github.com/jprichardson/node-fs-extra/issues/140
++<!--- Preserve file timestamp on copy. Closes #138 -->
++[#139]: https://github.com/jprichardson/node-fs-extra/pull/139
++<!--- Preserve timestamps on copying files -->
++[#138]: https://github.com/jprichardson/node-fs-extra/issues/138
++<!--- outputFile/outputJson: Unexpected end of input -->
++[#137]: https://github.com/jprichardson/node-fs-extra/issues/137
++<!--- Update license attribute -->
++[#136]: https://github.com/jprichardson/node-fs-extra/pull/136
++<!--- emptyDir throws Error if no callback is provided -->
++[#135]: https://github.com/jprichardson/node-fs-extra/issues/135
++<!--- Handle EEXIST error when clobbering dir -->
++[#134]: https://github.com/jprichardson/node-fs-extra/pull/134
++<!--- Travis runs with `sudo: false` -->
++[#133]: https://github.com/jprichardson/node-fs-extra/pull/133
++<!--- isDirectory method -->
++[#132]: https://github.com/jprichardson/node-fs-extra/pull/132
++<!--- copySync is not working iojs 1.8.4 on linux [feature-copy] -->
++[#131]: https://github.com/jprichardson/node-fs-extra/issues/131
++<!--- Please review additional features. -->
++[#130]: https://github.com/jprichardson/node-fs-extra/pull/130
++<!--- can you review this feature? -->
++[#129]: https://github.com/jprichardson/node-fs-extra/pull/129
++<!--- fsExtra.move(filepath, newPath) broken; -->
++[#128]: https://github.com/jprichardson/node-fs-extra/issues/128
++<!--- consider using fs.access to remove deprecated warnings for fs.exists -->
++[#127]: https://github.com/jprichardson/node-fs-extra/issues/127
++<!---  TypeError: Object #<Object> has no method 'access' -->
++[#126]: https://github.com/jprichardson/node-fs-extra/issues/126
++<!--- Question: What do the *Sync function do different from non-sync -->
++[#125]: https://github.com/jprichardson/node-fs-extra/issues/125
++<!--- move with clobber option 'ENOTEMPTY' -->
++[#124]: https://github.com/jprichardson/node-fs-extra/issues/124
++<!--- Only copy the content of a directory -->
++[#123]: https://github.com/jprichardson/node-fs-extra/issues/123
++<!--- Update section links in README to match current section ids. -->
++[#122]: https://github.com/jprichardson/node-fs-extra/pull/122
++<!--- emptyDir is undefined -->
++[#121]: https://github.com/jprichardson/node-fs-extra/issues/121
++<!--- usage bug caused by shallow cloning methods of 'graceful-fs' -->
++[#120]: https://github.com/jprichardson/node-fs-extra/issues/120
++<!--- mkdirs and ensureDir never invoke callback and consume CPU indefinitely if provided a path with invalid characters on Windows -->
++[#119]: https://github.com/jprichardson/node-fs-extra/issues/119
++<!--- createOutputStream -->
++[#118]: https://github.com/jprichardson/node-fs-extra/pull/118
++<!--- Fixed issue with slash separated paths on windows -->
++[#117]: https://github.com/jprichardson/node-fs-extra/pull/117
++<!--- copySync can only copy directories not files [documentation, feature-copy] -->
++[#116]: https://github.com/jprichardson/node-fs-extra/issues/116
++<!--- .Copy & .CopySync [feature-copy] -->
++[#115]: https://github.com/jprichardson/node-fs-extra/issues/115
++<!--- Fails to move (rename) directory to non-empty directory even with clobber: true -->
++[#114]: https://github.com/jprichardson/node-fs-extra/issues/114
++<!--- fs.copy seems to callback early if the destination file already exists -->
++[#113]: https://github.com/jprichardson/node-fs-extra/issues/113
++<!--- Copying a file into an existing directory -->
++[#112]: https://github.com/jprichardson/node-fs-extra/pull/112
++<!--- Moving a file into an existing directory  -->
++[#111]: https://github.com/jprichardson/node-fs-extra/pull/111
++<!--- Moving a file into an existing directory -->
++[#110]: https://github.com/jprichardson/node-fs-extra/pull/110
++<!--- fs.move across windows drives fails -->
++[#109]: https://github.com/jprichardson/node-fs-extra/issues/109
++<!--- fse.move directories across multiple devices doesn't work -->
++[#108]: https://github.com/jprichardson/node-fs-extra/issues/108
++<!--- Check if dest path is an existing dir and copy or move source in it -->
++[#107]: https://github.com/jprichardson/node-fs-extra/pull/107
++<!--- fse.copySync crashes while copying across devices D: [feature-copy] -->
++[#106]: https://github.com/jprichardson/node-fs-extra/issues/106
++<!--- fs.copy hangs on iojs -->
++[#105]: https://github.com/jprichardson/node-fs-extra/issues/105
++<!--- fse.move deletes folders [bug] -->
++[#104]: https://github.com/jprichardson/node-fs-extra/issues/104
++<!--- Error: EMFILE with copy -->
++[#103]: https://github.com/jprichardson/node-fs-extra/issues/103
++<!--- touch / touchSync was removed ? -->
++[#102]: https://github.com/jprichardson/node-fs-extra/issues/102
++<!--- fs-extra promisified -->
++[#101]: https://github.com/jprichardson/node-fs-extra/issues/101
++<!--- copy: options object or filter to pass to ncp -->
++[#100]: https://github.com/jprichardson/node-fs-extra/pull/100
++<!--- ensureDir() modes [future] -->
++[#99]: https://github.com/jprichardson/node-fs-extra/issues/99
++<!--- fs.copy() incorrect async behavior [bug] -->
++[#98]: https://github.com/jprichardson/node-fs-extra/issues/98
++<!--- use path.join; fix copySync bug -->
++[#97]: https://github.com/jprichardson/node-fs-extra/pull/97
++<!--- destFolderExists in copySync is always undefined. -->
++[#96]: https://github.com/jprichardson/node-fs-extra/issues/96
++<!--- Using graceful-ncp instead of ncp -->
++[#95]: https://github.com/jprichardson/node-fs-extra/pull/95
++<!--- Error: EEXIST, file already exists '../mkdirp/bin/cmd.js' on fs.copySync() [enhancement, feature-copy] -->
++[#94]: https://github.com/jprichardson/node-fs-extra/issues/94
++<!--- Confusing error if drive not mounted [enhancement] -->
++[#93]: https://github.com/jprichardson/node-fs-extra/issues/93
++<!--- Problems with Bluebird -->
++[#92]: https://github.com/jprichardson/node-fs-extra/issues/92
++<!--- fs.copySync('/test', '/haha') is different with 'cp -r /test /haha' [enhancement] -->
++[#91]: https://github.com/jprichardson/node-fs-extra/issues/91
++<!--- Folder creation and file copy is Happening in 64 bit machine but not in 32 bit machine -->
++[#90]: https://github.com/jprichardson/node-fs-extra/issues/90
++<!--- Error: EEXIST using fs-extra's fs.copy to copy a directory on Windows -->
++[#89]: https://github.com/jprichardson/node-fs-extra/issues/89
++<!--- Stacking those libraries -->
++[#88]: https://github.com/jprichardson/node-fs-extra/issues/88
++<!--- createWriteStream + outputFile = ? -->
++[#87]: https://github.com/jprichardson/node-fs-extra/issues/87
++<!--- no moveSync? -->
++[#86]: https://github.com/jprichardson/node-fs-extra/issues/86
++<!--- Copy symlinks in copySync -->
++[#85]: https://github.com/jprichardson/node-fs-extra/pull/85
++<!--- Push latest version to npm ? -->
++[#84]: https://github.com/jprichardson/node-fs-extra/issues/84
++<!--- Prevent copying a directory into itself [feature-copy] -->
++[#83]: https://github.com/jprichardson/node-fs-extra/issues/83
++<!--- README updates for move -->
++[#82]: https://github.com/jprichardson/node-fs-extra/pull/82
++<!--- fd leak after fs.move -->
++[#81]: https://github.com/jprichardson/node-fs-extra/issues/81
++<!--- Preserve file mode in copySync -->
++[#80]: https://github.com/jprichardson/node-fs-extra/pull/80
++<!--- fs.copy only .html file empty -->
++[#79]: https://github.com/jprichardson/node-fs-extra/issues/79
++<!--- copySync was not applying filters to directories -->
++[#78]: https://github.com/jprichardson/node-fs-extra/pull/78
++<!--- Create README reference to bluebird -->
++[#77]: https://github.com/jprichardson/node-fs-extra/issues/77
++<!--- Create README reference to typescript -->
++[#76]: https://github.com/jprichardson/node-fs-extra/issues/76
++<!--- add glob as a dep? [question] -->
++[#75]: https://github.com/jprichardson/node-fs-extra/issues/75
++<!--- including new emptydir module -->
++[#74]: https://github.com/jprichardson/node-fs-extra/pull/74
++<!--- add dependency status in readme -->
++[#73]: https://github.com/jprichardson/node-fs-extra/pull/73
++<!--- Use svg instead of png to get better image quality -->
++[#72]: https://github.com/jprichardson/node-fs-extra/pull/72
++<!--- fse.copy not working on Windows 7 x64 OS, but, copySync does work -->
++[#71]: https://github.com/jprichardson/node-fs-extra/issues/71
++<!--- Not filter each file, stops on first false [bug] -->
++[#70]: https://github.com/jprichardson/node-fs-extra/issues/70
++<!--- How to check if folder exist and read the folder name -->
++[#69]: https://github.com/jprichardson/node-fs-extra/issues/69
++<!--- consider flag to readJsonSync (throw false) [enhancement] -->
++[#68]: https://github.com/jprichardson/node-fs-extra/issues/68
++<!--- docs for readJson incorrectly states that is accepts options -->
++[#67]: https://github.com/jprichardson/node-fs-extra/issues/67
++<!--- ENAMETOOLONG -->
++[#66]: https://github.com/jprichardson/node-fs-extra/issues/66
++<!--- exclude filter in fs.copy -->
++[#65]: https://github.com/jprichardson/node-fs-extra/issues/65
++<!--- Announce: mfs - monitor your fs-extra calls -->
++[#64]: https://github.com/jprichardson/node-fs-extra/issues/64
++<!--- Walk -->
++[#63]: https://github.com/jprichardson/node-fs-extra/issues/63
++<!--- npm install fs-extra doesn't work -->
++[#62]: https://github.com/jprichardson/node-fs-extra/issues/62
++<!--- No longer supports node 0.8 due to use of `^` in package.json dependencies -->
++[#61]: https://github.com/jprichardson/node-fs-extra/issues/61
++<!--- chmod & chown for mkdirs -->
++[#60]: https://github.com/jprichardson/node-fs-extra/issues/60
++<!--- Consider including mkdirp and making fs-extra "--use_strict" safe [question] -->
++[#59]: https://github.com/jprichardson/node-fs-extra/issues/59
++<!--- Stack trace not included in fs.copy error -->
++[#58]: https://github.com/jprichardson/node-fs-extra/issues/58
++<!--- Possible to include wildcards in delete? -->
++[#57]: https://github.com/jprichardson/node-fs-extra/issues/57
++<!--- Crash when have no access to write to destination file in copy  -->
++[#56]: https://github.com/jprichardson/node-fs-extra/issues/56
++<!--- Is it possible to have any console output similar to Grunt copy module? -->
++[#55]: https://github.com/jprichardson/node-fs-extra/issues/55
++<!--- `copy` does not preserve file ownership and permissons -->
++[#54]: https://github.com/jprichardson/node-fs-extra/issues/54
++<!--- outputFile() - ability to write data in appending mode -->
++[#53]: https://github.com/jprichardson/node-fs-extra/issues/53
++<!--- This fixes (what I think) is a bug in copySync -->
++[#52]: https://github.com/jprichardson/node-fs-extra/pull/52
++<!--- Add a Bitdeli Badge to README -->
++[#51]: https://github.com/jprichardson/node-fs-extra/pull/51
++<!--- Replace mechanism in createFile -->
++[#50]: https://github.com/jprichardson/node-fs-extra/issues/50
++<!--- update rimraf to v2.2.6 -->
++[#49]: https://github.com/jprichardson/node-fs-extra/pull/49
++<!--- fs.copy issue [bug] -->
++[#48]: https://github.com/jprichardson/node-fs-extra/issues/48
++<!--- Bug in copy - callback called on readStream "close" - Fixed in ncp 0.5.0 -->
++[#47]: https://github.com/jprichardson/node-fs-extra/issues/47
++<!--- update copyright year -->
++[#46]: https://github.com/jprichardson/node-fs-extra/pull/46
++<!--- Added note about fse.outputFile() being the one that overwrites -->
++[#45]: https://github.com/jprichardson/node-fs-extra/pull/45
++<!--- Proposal: Stream support -->
++[#44]: https://github.com/jprichardson/node-fs-extra/pull/44
++<!--- Better error reporting  -->
++[#43]: https://github.com/jprichardson/node-fs-extra/issues/43
++<!--- Performance issue? -->
++[#42]: https://github.com/jprichardson/node-fs-extra/issues/42
++<!--- There does seem to be a synchronous version now -->
++[#41]: https://github.com/jprichardson/node-fs-extra/pull/41
++<!--- fs.copy throw unexplained error ENOENT, utime  -->
++[#40]: https://github.com/jprichardson/node-fs-extra/issues/40
++<!--- Added regression test for copy() return callback on error -->
++[#39]: https://github.com/jprichardson/node-fs-extra/pull/39
++<!--- Return err in copy() fstat cb, because stat could be undefined or null -->
++[#38]: https://github.com/jprichardson/node-fs-extra/pull/38
++<!--- Maybe include a line reader? [enhancement, question] -->
++[#37]: https://github.com/jprichardson/node-fs-extra/issues/37
++<!--- `filter` parameter `fs.copy` and `fs.copySync` -->
++[#36]: https://github.com/jprichardson/node-fs-extra/pull/36
++<!--- `filter` parameter `fs.copy` and `fs.copySync`  -->
++[#35]: https://github.com/jprichardson/node-fs-extra/pull/35
++<!--- update docs to include options for JSON methods [enhancement] -->
++[#34]: https://github.com/jprichardson/node-fs-extra/issues/34
++<!--- fs_extra.copySync -->
++[#33]: https://github.com/jprichardson/node-fs-extra/pull/33
++<!--- update to latest jsonfile [enhancement] -->
++[#32]: https://github.com/jprichardson/node-fs-extra/issues/32
++<!--- Add ensure methods [enhancement] -->
++[#31]: https://github.com/jprichardson/node-fs-extra/issues/31
++<!--- update package.json optional dep `graceful-fs` -->
++[#30]: https://github.com/jprichardson/node-fs-extra/issues/30
++<!--- Copy failing if dest directory doesn't exist. Is this intended? -->
++[#29]: https://github.com/jprichardson/node-fs-extra/issues/29
++<!--- homepage field must be a string url. Deleted. -->
++[#28]: https://github.com/jprichardson/node-fs-extra/issues/28
++<!--- Update Readme -->
++[#27]: https://github.com/jprichardson/node-fs-extra/issues/27
++<!--- Add readdir recursive method. [enhancement] -->
++[#26]: https://github.com/jprichardson/node-fs-extra/issues/26
++<!--- adding an `.npmignore` file -->
++[#25]: https://github.com/jprichardson/node-fs-extra/pull/25
++<!--- [bug] cannot run in strict mode [bug] -->
++[#24]: https://github.com/jprichardson/node-fs-extra/issues/24
++<!--- `writeJSON()` should create parent directories -->
++[#23]: https://github.com/jprichardson/node-fs-extra/issues/23
++<!--- Add a limit option to mkdirs() -->
++[#22]: https://github.com/jprichardson/node-fs-extra/pull/22
++<!--- touch() in 0.10.0 -->
++[#21]: https://github.com/jprichardson/node-fs-extra/issues/21
++<!--- fs.remove yields callback before directory is really deleted -->
++[#20]: https://github.com/jprichardson/node-fs-extra/issues/20
++<!--- fs.copy err is empty array -->
++[#19]: https://github.com/jprichardson/node-fs-extra/issues/19
++<!--- Exposed copyFile Function -->
++[#18]: https://github.com/jprichardson/node-fs-extra/pull/18
++<!--- Use `require("graceful-fs")` if found instead of `require("fs")` -->
++[#17]: https://github.com/jprichardson/node-fs-extra/issues/17
++<!--- Update README.md -->
++[#16]: https://github.com/jprichardson/node-fs-extra/pull/16
++<!--- Implement cp -r but sync aka copySync. [enhancement] -->
++[#15]: https://github.com/jprichardson/node-fs-extra/issues/15
++<!--- fs.mkdirSync is broken in 0.3.1 -->
++[#14]: https://github.com/jprichardson/node-fs-extra/issues/14
++<!--- Thoughts on including a directory tree / file watcher? [enhancement, question] -->
++[#13]: https://github.com/jprichardson/node-fs-extra/issues/13
++<!--- copyFile & copyFileSync are global -->
++[#12]: https://github.com/jprichardson/node-fs-extra/issues/12
++<!--- Thoughts on including a file walker? [enhancement, question] -->
++[#11]: https://github.com/jprichardson/node-fs-extra/issues/11
++<!--- move / moveFile API [enhancement] -->
++[#10]: https://github.com/jprichardson/node-fs-extra/issues/10
++<!--- don't import normal fs stuff into fs-extra -->
++[#9]: https://github.com/jprichardson/node-fs-extra/issues/9
++<!--- Update rimraf to latest version -->
++[#8]: https://github.com/jprichardson/node-fs-extra/pull/8
++<!--- Remove CoffeeScript development dependency -->
++[#6]: https://github.com/jprichardson/node-fs-extra/issues/6
++<!--- comments on naming -->
++[#5]: https://github.com/jprichardson/node-fs-extra/issues/5
++<!--- version bump to 0.2 -->
++[#4]: https://github.com/jprichardson/node-fs-extra/issues/4
++<!--- Hi! I fixed some code for you! -->
++[#3]: https://github.com/jprichardson/node-fs-extra/pull/3
++<!--- Merge with fs.extra and mkdirp -->
++[#2]: https://github.com/jprichardson/node-fs-extra/issues/2
++<!--- file-extra npm !exist -->
++[#1]: https://github.com/jprichardson/node-fs-extra/issues/1
+diff -ruN npm/node_modules/fs-extra/lib/copy/copy.js npm/node_modules/fs-extra/lib/copy/copy.js
+--- npm/node_modules/fs-extra/lib/copy/copy.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/copy/copy.js	2016-01-27 15:45:08.000000000 +0000
+@@ -0,0 +1,38 @@
++var fs = require('graceful-fs')
++var path = require('path')
++var ncp = require('./ncp')
++var mkdir = require('../mkdirs')
++
++function copy (src, dest, options, callback) {
++  if (typeof options === 'function' && !callback) {
++    callback = options
++    options = {}
++  } else if (typeof options === 'function' || options instanceof RegExp) {
++    options = {filter: options}
++  }
++  callback = callback || function () {}
++  options = options || {}
++
++  fs.lstat(src, function (err, stats) {
++    if (err) return callback(err)
++
++    var dir = null
++    if (stats.isDirectory()) {
++      var parts = dest.split(path.sep)
++      parts.pop()
++      dir = parts.join(path.sep)
++    } else {
++      dir = path.dirname(dest)
++    }
++
++    fs.exists(dir, function (dirExists) {
++      if (dirExists) return ncp(src, dest, options, callback)
++      mkdir.mkdirs(dir, function (err) {
++        if (err) return callback(err)
++        ncp(src, dest, options, callback)
++      })
++    })
++  })
++}
++
++module.exports = copy
+diff -ruN npm/node_modules/fs-extra/lib/copy/index.js npm/node_modules/fs-extra/lib/copy/index.js
+--- npm/node_modules/fs-extra/lib/copy/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/copy/index.js	2015-07-01 19:26:21.000000000 +0100
+@@ -0,0 +1,3 @@
++module.exports = {
++  copy: require('./copy')
++}
+diff -ruN npm/node_modules/fs-extra/lib/copy/ncp.js npm/node_modules/fs-extra/lib/copy/ncp.js
+--- npm/node_modules/fs-extra/lib/copy/ncp.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/copy/ncp.js	2015-12-17 17:07:00.000000000 +0000
+@@ -0,0 +1,243 @@
++// imported from ncp (this is temporary, will rewrite)
++
++var fs = require('graceful-fs')
++var path = require('path')
++var utimes = require('../util/utimes')
++
++function ncp (source, dest, options, callback) {
++  if (!callback) {
++    callback = options
++    options = {}
++  }
++
++  var basePath = process.cwd()
++  var currentPath = path.resolve(basePath, source)
++  var targetPath = path.resolve(basePath, dest)
++
++  var filter = options.filter
++  var transform = options.transform
++  var clobber = options.clobber !== false
++  var dereference = options.dereference
++  var preserveTimestamps = options.preserveTimestamps === true
++
++  var errs = null
++
++  var started = 0
++  var finished = 0
++  var running = 0
++  // this is pretty useless now that we're using graceful-fs
++  // consider removing
++  var limit = options.limit || 512
++
++  startCopy(currentPath)
++
++  function startCopy (source) {
++    started++
++    if (filter) {
++      if (filter instanceof RegExp) {
++        if (!filter.test(source)) {
++          return doneOne(true)
++        }
++      } else if (typeof filter === 'function') {
++        if (!filter(source)) {
++          return doneOne(true)
++        }
++      }
++    }
++    return getStats(source)
++  }
++
++  function getStats (source) {
++    var stat = dereference ? fs.stat : fs.lstat
++    if (running >= limit) {
++      return setImmediate(function () {
++        getStats(source)
++      })
++    }
++    running++
++    stat(source, function (err, stats) {
++      if (err) return onError(err)
++
++      // We need to get the mode from the stats object and preserve it.
++      var item = {
++        name: source,
++        mode: stats.mode,
++        mtime: stats.mtime, // modified time
++        atime: stats.atime, // access time
++        stats: stats // temporary
++      }
++
++      if (stats.isDirectory()) {
++        return onDir(item)
++      } else if (stats.isFile() || stats.isCharacterDevice() || stats.isBlockDevice()) {
++        return onFile(item)
++      } else if (stats.isSymbolicLink()) {
++        // Symlinks don't really need to know about the mode.
++        return onLink(source)
++      }
++    })
++  }
++
++  function onFile (file) {
++    var target = file.name.replace(currentPath, targetPath)
++    isWritable(target, function (writable) {
++      if (writable) {
++        copyFile(file, target)
++      } else {
++        if (clobber) {
++          rmFile(target, function () {
++            copyFile(file, target)
++          })
++        } else {
++          doneOne()
++        }
++      }
++    })
++  }
++
++  function copyFile (file, target) {
++    var readStream = fs.createReadStream(file.name)
++    var writeStream = fs.createWriteStream(target, { mode: file.mode })
++
++    readStream.on('error', onError)
++    writeStream.on('error', onError)
++
++    if (transform) {
++      transform(readStream, writeStream, file)
++    } else {
++      writeStream.on('open', function () {
++        readStream.pipe(writeStream)
++      })
++    }
++
++    writeStream.once('finish', function () {
++      fs.chmod(target, file.mode, function (err) {
++        if (err) return onError(err)
++        if (preserveTimestamps) {
++          utimes.utimesMillis(target, file.atime, file.mtime, function (err) {
++            if (err) return onError(err)
++            return doneOne()
++          })
++        } else {
++          doneOne()
++        }
++      })
++    })
++  }
++
++  function rmFile (file, done) {
++    fs.unlink(file, function (err) {
++      if (err) return onError(err)
++      return done()
++    })
++  }
++
++  function onDir (dir) {
++    var target = dir.name.replace(currentPath, targetPath)
++    isWritable(target, function (writable) {
++      if (writable) {
++        return mkDir(dir, target)
++      }
++      copyDir(dir.name)
++    })
++  }
++
++  function mkDir (dir, target) {
++    fs.mkdir(target, dir.mode, function (err) {
++      if (err) return onError(err)
++      // despite setting mode in fs.mkdir, doesn't seem to work
++      // so we set it here.
++      fs.chmod(target, dir.mode, function (err) {
++        if (err) return onError(err)
++        copyDir(dir.name)
++      })
++    })
++  }
++
++  function copyDir (dir) {
++    fs.readdir(dir, function (err, items) {
++      if (err) return onError(err)
++      items.forEach(function (item) {
++        startCopy(path.join(dir, item))
++      })
++      return doneOne()
++    })
++  }
++
++  function onLink (link) {
++    var target = link.replace(currentPath, targetPath)
++    fs.readlink(link, function (err, resolvedPath) {
++      if (err) return onError(err)
++      checkLink(resolvedPath, target)
++    })
++  }
++
++  function checkLink (resolvedPath, target) {
++    if (dereference) {
++      resolvedPath = path.resolve(basePath, resolvedPath)
++    }
++    isWritable(target, function (writable) {
++      if (writable) {
++        return makeLink(resolvedPath, target)
++      }
++      fs.readlink(target, function (err, targetDest) {
++        if (err) return onError(err)
++
++        if (dereference) {
++          targetDest = path.resolve(basePath, targetDest)
++        }
++        if (targetDest === resolvedPath) {
++          return doneOne()
++        }
++        return rmFile(target, function () {
++          makeLink(resolvedPath, target)
++        })
++      })
++    })
++  }
++
++  function makeLink (linkPath, target) {
++    fs.symlink(linkPath, target, function (err) {
++      if (err) return onError(err)
++      return doneOne()
++    })
++  }
++
++  function isWritable (path, done) {
++    fs.lstat(path, function (err) {
++      if (err) {
++        if (err.code === 'ENOENT') return done(true)
++        return done(false)
++      }
++      return done(false)
++    })
++  }
++
++  function onError (err) {
++    if (options.stopOnError) {
++      return callback(err)
++    } else if (!errs && options.errs) {
++      errs = fs.createWriteStream(options.errs)
++    } else if (!errs) {
++      errs = []
++    }
++    if (typeof errs.write === 'undefined') {
++      errs.push(err)
++    } else {
++      errs.write(err.stack + '\n\n')
++    }
++    return doneOne()
++  }
++
++  function doneOne (skipped) {
++    if (!skipped) running--
++    finished++
++    if ((started === finished) && (running === 0)) {
++      if (callback !== undefined) {
++        return errs ? callback(errs) : callback(null)
++      }
++    }
++  }
++}
++
++module.exports = ncp
+diff -ruN npm/node_modules/fs-extra/lib/copy-sync/copy-file-sync.js npm/node_modules/fs-extra/lib/copy-sync/copy-file-sync.js
+--- npm/node_modules/fs-extra/lib/copy-sync/copy-file-sync.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/copy-sync/copy-file-sync.js	2015-11-02 19:02:14.000000000 +0000
+@@ -0,0 +1,39 @@
++var fs = require('graceful-fs')
++
++var BUF_LENGTH = 64 * 1024
++var _buff = new Buffer(BUF_LENGTH)
++
++function copyFileSync (srcFile, destFile, options) {
++  var clobber = options.clobber
++  var preserveTimestamps = options.preserveTimestamps
++
++  if (fs.existsSync(destFile)) {
++    if (clobber) {
++      fs.chmodSync(destFile, parseInt('777', 8))
++      fs.unlinkSync(destFile)
++    } else {
++      throw Error('EEXIST')
++    }
++  }
++
++  var fdr = fs.openSync(srcFile, 'r')
++  var stat = fs.fstatSync(fdr)
++  var fdw = fs.openSync(destFile, 'w', stat.mode)
++  var bytesRead = 1
++  var pos = 0
++
++  while (bytesRead > 0) {
++    bytesRead = fs.readSync(fdr, _buff, 0, BUF_LENGTH, pos)
++    fs.writeSync(fdw, _buff, 0, bytesRead)
++    pos += bytesRead
++  }
++
++  if (preserveTimestamps) {
++    fs.futimesSync(fdw, stat.atime, stat.mtime)
++  }
++
++  fs.closeSync(fdr)
++  fs.closeSync(fdw)
++}
++
++module.exports = copyFileSync
+diff -ruN npm/node_modules/fs-extra/lib/copy-sync/copy-sync.js npm/node_modules/fs-extra/lib/copy-sync/copy-sync.js
+--- npm/node_modules/fs-extra/lib/copy-sync/copy-sync.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/copy-sync/copy-sync.js	2016-01-06 05:35:10.000000000 +0000
+@@ -0,0 +1,47 @@
++var fs = require('graceful-fs')
++var path = require('path')
++var copyFileSync = require('./copy-file-sync')
++var mkdir = require('../mkdirs')
++
++function copySync (src, dest, options) {
++  if (typeof options === 'function' || options instanceof RegExp) {
++    options = {filter: options}
++  }
++
++  options = options || {}
++  options.recursive = !!options.recursive
++
++  // default to true for now
++  options.clobber = 'clobber' in options ? !!options.clobber : true
++  options.preserveTimestamps = 'preserveTimestamps' in options ? !!options.preserveTimestamps : false
++
++  options.filter = options.filter || function () { return true }
++
++  var stats = options.recursive ? fs.lstatSync(src) : fs.statSync(src)
++  var destFolder = path.dirname(dest)
++  var destFolderExists = fs.existsSync(destFolder)
++  var performCopy = false
++
++  if (stats.isFile()) {
++    if (options.filter instanceof RegExp) performCopy = options.filter.test(src)
++    else if (typeof options.filter === 'function') performCopy = options.filter(src)
++
++    if (performCopy) {
++      if (!destFolderExists) mkdir.mkdirsSync(destFolder)
++      copyFileSync(src, dest, {clobber: options.clobber, preserveTimestamps: options.preserveTimestamps})
++    }
++  } else if (stats.isDirectory()) {
++    if (!fs.existsSync(dest)) mkdir.mkdirsSync(dest)
++    var contents = fs.readdirSync(src)
++    contents.forEach(function (content) {
++      var opts = options
++      opts.recursive = true
++      copySync(path.join(src, content), path.join(dest, content), opts)
++    })
++  } else if (options.recursive && stats.isSymbolicLink()) {
++    var srcPath = fs.readlinkSync(src)
++    fs.symlinkSync(srcPath, dest)
++  }
++}
++
++module.exports = copySync
+diff -ruN npm/node_modules/fs-extra/lib/copy-sync/index.js npm/node_modules/fs-extra/lib/copy-sync/index.js
+--- npm/node_modules/fs-extra/lib/copy-sync/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/copy-sync/index.js	2015-07-01 19:27:47.000000000 +0100
+@@ -0,0 +1,3 @@
++module.exports = {
++  copySync: require('./copy-sync')
++}
+diff -ruN npm/node_modules/fs-extra/lib/empty/index.js npm/node_modules/fs-extra/lib/empty/index.js
+--- npm/node_modules/fs-extra/lib/empty/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/empty/index.js	2015-06-22 14:11:39.000000000 +0100
+@@ -0,0 +1,46 @@
++var fs = require('fs')
++var path = require('path')
++var mkdir = require('../mkdirs')
++var remove = require('../remove')
++
++function emptyDir (dir, callback) {
++  fs.readdir(dir, function (err, items) {
++    if (err) return mkdir.mkdirs(dir, callback)
++
++    items = items.map(function (item) {
++      return path.join(dir, item)
++    })
++
++    deleteItem()
++
++    function deleteItem () {
++      var item = items.pop()
++      if (!item) return callback()
++      remove.remove(item, function (err) {
++        if (err) return callback(err)
++        deleteItem()
++      })
++    }
++  })
++}
++
++function emptyDirSync (dir) {
++  var items
++  try {
++    items = fs.readdirSync(dir)
++  } catch (err) {
++    return mkdir.mkdirsSync(dir)
++  }
++
++  items.forEach(function (item) {
++    item = path.join(dir, item)
++    remove.removeSync(item)
++  })
++}
++
++module.exports = {
++  emptyDirSync: emptyDirSync,
++  emptydirSync: emptyDirSync,
++  emptyDir: emptyDir,
++  emptydir: emptyDir
++}
+diff -ruN npm/node_modules/fs-extra/lib/ensure/file.js npm/node_modules/fs-extra/lib/ensure/file.js
+--- npm/node_modules/fs-extra/lib/ensure/file.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/ensure/file.js	2015-08-06 21:56:14.000000000 +0100
+@@ -0,0 +1,43 @@
++var path = require('path')
++var fs = require('graceful-fs')
++var mkdir = require('../mkdirs')
++
++function createFile (file, callback) {
++  function makeFile () {
++    fs.writeFile(file, '', function (err) {
++      if (err) return callback(err)
++      callback()
++    })
++  }
++
++  fs.exists(file, function (fileExists) {
++    if (fileExists) return callback()
++    var dir = path.dirname(file)
++    fs.exists(dir, function (dirExists) {
++      if (dirExists) return makeFile()
++      mkdir.mkdirs(dir, function (err) {
++        if (err) return callback(err)
++        makeFile()
++      })
++    })
++  })
++}
++
++function createFileSync (file) {
++  if (fs.existsSync(file)) return
++
++  var dir = path.dirname(file)
++  if (!fs.existsSync(dir)) {
++    mkdir.mkdirsSync(dir)
++  }
++
++  fs.writeFileSync(file, '')
++}
++
++module.exports = {
++  createFile: createFile,
++  createFileSync: createFileSync,
++  // alias
++  ensureFile: createFile,
++  ensureFileSync: createFileSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/ensure/index.js npm/node_modules/fs-extra/lib/ensure/index.js
+--- npm/node_modules/fs-extra/lib/ensure/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/ensure/index.js	2015-08-06 21:56:14.000000000 +0100
+@@ -0,0 +1,21 @@
++var file = require('./file')
++var link = require('./link')
++var symlink = require('./symlink')
++
++module.exports = {
++  // file
++  createFile: file.createFile,
++  createFileSync: file.createFileSync,
++  ensureFile: file.createFile,
++  ensureFileSync: file.createFileSync,
++  // link
++  createLink: link.createLink,
++  createLinkSync: link.createLinkSync,
++  ensureLink: link.createLink,
++  ensureLinkSync: link.createLinkSync,
++  // symlink
++  createSymlink: symlink.createSymlink,
++  createSymlinkSync: symlink.createSymlinkSync,
++  ensureSymlink: symlink.createSymlink,
++  ensureSymlinkSync: symlink.createSymlinkSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/ensure/link.js npm/node_modules/fs-extra/lib/ensure/link.js
+--- npm/node_modules/fs-extra/lib/ensure/link.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/ensure/link.js	2015-10-21 12:22:45.000000000 +0100
+@@ -0,0 +1,58 @@
++var path = require('path')
++var fs = require('graceful-fs')
++var mkdir = require('../mkdirs')
++
++function createLink (srcpath, dstpath, callback) {
++  function makeLink (srcpath, dstpath) {
++    fs.link(srcpath, dstpath, function (err) {
++      if (err) return callback(err)
++      callback(null)
++    })
++  }
++
++  fs.exists(dstpath, function (destinationExists) {
++    if (destinationExists) return callback(null)
++    fs.lstat(srcpath, function (err, stat) {
++      if (err) {
++        err.message = err.message.replace('lstat', 'ensureLink')
++        return callback(err)
++      }
++
++      var dir = path.dirname(dstpath)
++      fs.exists(dir, function (dirExists) {
++        if (dirExists) return makeLink(srcpath, dstpath)
++        mkdir.mkdirs(dir, function (err) {
++          if (err) return callback(err)
++          makeLink(srcpath, dstpath)
++        })
++      })
++    })
++  })
++}
++
++function createLinkSync (srcpath, dstpath, callback) {
++  var destinationExists = fs.existsSync(dstpath)
++  if (destinationExists) return undefined
++
++  try {
++    fs.lstatSync(srcpath)
++  } catch (err) {
++    err.message = err.message.replace('lstat', 'ensureLink')
++    throw err
++  }
++
++  var dir = path.dirname(dstpath)
++  var dirExists = fs.existsSync(dir)
++  if (dirExists) return fs.linkSync(srcpath, dstpath)
++  mkdir.mkdirsSync(dir)
++
++  return fs.linkSync(srcpath, dstpath)
++}
++
++module.exports = {
++  createLink: createLink,
++  createLinkSync: createLinkSync,
++  // alias
++  ensureLink: createLink,
++  ensureLinkSync: createLinkSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/ensure/symlink.js npm/node_modules/fs-extra/lib/ensure/symlink.js
+--- npm/node_modules/fs-extra/lib/ensure/symlink.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/ensure/symlink.js	2015-08-07 21:21:36.000000000 +0100
+@@ -0,0 +1,62 @@
++var path = require('path')
++var fs = require('graceful-fs')
++var _mkdirs = require('../mkdirs')
++var mkdirs = _mkdirs.mkdirs
++var mkdirsSync = _mkdirs.mkdirsSync
++
++var _symlinkPaths = require('./symlink-paths')
++var symlinkPaths = _symlinkPaths.symlinkPaths
++var symlinkPathsSync = _symlinkPaths.symlinkPathsSync
++
++var _symlinkType = require('./symlink-type')
++var symlinkType = _symlinkType.symlinkType
++var symlinkTypeSync = _symlinkType.symlinkTypeSync
++
++function createSymlink (srcpath, dstpath, type, callback) {
++  callback = (typeof type === 'function') ? type : callback
++  type = (typeof type === 'function') ? false : type
++
++  fs.exists(dstpath, function (destinationExists) {
++    if (destinationExists) return callback(null)
++    symlinkPaths(srcpath, dstpath, function (err, relative) {
++      if (err) return callback(err)
++      srcpath = relative.toDst
++      symlinkType(relative.toCwd, type, function (err, type) {
++        if (err) return callback(err)
++        var dir = path.dirname(dstpath)
++        fs.exists(dir, function (dirExists) {
++          if (dirExists) return fs.symlink(srcpath, dstpath, type, callback)
++          mkdirs(dir, function (err) {
++            if (err) return callback(err)
++            fs.symlink(srcpath, dstpath, type, callback)
++          })
++        })
++      })
++    })
++  })
++}
++
++function createSymlinkSync (srcpath, dstpath, type, callback) {
++  callback = (typeof type === 'function') ? type : callback
++  type = (typeof type === 'function') ? false : type
++
++  var destinationExists = fs.existsSync(dstpath)
++  if (destinationExists) return undefined
++
++  var relative = symlinkPathsSync(srcpath, dstpath)
++  srcpath = relative.toDst
++  type = symlinkTypeSync(relative.toCwd, type)
++  var dir = path.dirname(dstpath)
++  var exists = fs.existsSync(dir)
++  if (exists) return fs.symlinkSync(srcpath, dstpath, type)
++  mkdirsSync(dir)
++  return fs.symlinkSync(srcpath, dstpath, type)
++}
++
++module.exports = {
++  createSymlink: createSymlink,
++  createSymlinkSync: createSymlinkSync,
++  // alias
++  ensureSymlink: createSymlink,
++  ensureSymlinkSync: createSymlinkSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/ensure/symlink-paths.js npm/node_modules/fs-extra/lib/ensure/symlink-paths.js
+--- npm/node_modules/fs-extra/lib/ensure/symlink-paths.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/ensure/symlink-paths.js	2015-08-06 21:56:14.000000000 +0100
+@@ -0,0 +1,97 @@
++var path = require('path')
++// path.isAbsolute shim for Node.js 0.10 support
++path.isAbsolute = (path.isAbsolute) ? path.isAbsolute : require('path-is-absolute')
++var fs = require('graceful-fs')
++
++/**
++ * Function that returns two types of paths, one relative to symlink, and one
++ * relative to the current working directory. Checks if path is absolute or
++ * relative. If the path is relative, this function checks if the path is
++ * relative to symlink or relative to current working directory. This is an
++ * initiative to find a smarter `srcpath` to supply when building symlinks.
++ * This allows you to determine which path to use out of one of three possible
++ * types of source paths. The first is an absolute path. This is detected by
++ * `path.isAbsolute()`. When an absolute path is provided, it is checked to
++ * see if it exists. If it does it's used, if not an error is returned
++ * (callback)/ thrown (sync). The other two options for `srcpath` are a
++ * relative url. By default Node's `fs.symlink` works by creating a symlink
++ * using `dstpath` and expects the `srcpath` to be relative to the newly
++ * created symlink. If you provide a `srcpath` that does not exist on the file
++ * system it results in a broken symlink. To minimize this, the function
++ * checks to see if the 'relative to symlink' source file exists, and if it
++ * does it will use it. If it does not, it checks if there's a file that
++ * exists that is relative to the current working directory, if does its used.
++ * This preserves the expectations of the original fs.symlink spec and adds
++ * the ability to pass in `relative to current working direcotry` paths.
++ */
++
++function symlinkPaths (srcpath, dstpath, callback) {
++  if (path.isAbsolute(srcpath)) {
++    return fs.lstat(srcpath, function (err, stat) {
++      if (err) {
++        err.message = err.message.replace('lstat', 'ensureSymlink')
++        return callback(err)
++      }
++      return callback(null, {
++        'toCwd': srcpath,
++        'toDst': srcpath
++      })
++    })
++  } else {
++    var dstdir = path.dirname(dstpath)
++    var relativeToDst = path.join(dstdir, srcpath)
++    return fs.exists(relativeToDst, function (exists) {
++      if (exists) {
++        return callback(null, {
++          'toCwd': relativeToDst,
++          'toDst': srcpath
++        })
++      } else {
++        return fs.lstat(srcpath, function (err, stat) {
++          if (err) {
++            err.message = err.message.replace('lstat', 'ensureSymlink')
++            return callback(err)
++          }
++          return callback(null, {
++            'toCwd': srcpath,
++            'toDst': path.relative(dstdir, srcpath)
++          })
++        })
++      }
++    })
++  }
++}
++
++function symlinkPathsSync (srcpath, dstpath) {
++  var exists
++  if (path.isAbsolute(srcpath)) {
++    exists = fs.existsSync(srcpath)
++    if (!exists) throw new Error('absolute srcpath does not exist')
++    return {
++      'toCwd': srcpath,
++      'toDst': srcpath
++    }
++  } else {
++    var dstdir = path.dirname(dstpath)
++    var relativeToDst = path.join(dstdir, srcpath)
++    exists = fs.existsSync(relativeToDst)
++    if (exists) {
++      return {
++        'toCwd': relativeToDst,
++        'toDst': srcpath
++      }
++    } else {
++      exists = fs.existsSync(srcpath)
++      if (!exists) throw new Error('relative srcpath does not exist')
++      return {
++        'toCwd': srcpath,
++        'toDst': path.relative(dstdir, srcpath)
++      }
++    }
++  }
++}
++
++module.exports = {
++  'symlinkPaths': symlinkPaths,
++  'symlinkPathsSync': symlinkPathsSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/ensure/symlink-type.js npm/node_modules/fs-extra/lib/ensure/symlink-type.js
+--- npm/node_modules/fs-extra/lib/ensure/symlink-type.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/ensure/symlink-type.js	2015-10-21 12:23:07.000000000 +0100
+@@ -0,0 +1,27 @@
++var fs = require('graceful-fs')
++
++function symlinkType (srcpath, type, callback) {
++  callback = (typeof type === 'function') ? type : callback
++  type = (typeof type === 'function') ? false : type
++  if (type) return callback(null, type)
++  fs.lstat(srcpath, function (err, stats) {
++    if (err) return callback(null, 'file')
++    type = (stats && stats.isDirectory()) ? 'dir' : 'file'
++    callback(null, type)
++  })
++}
++
++function symlinkTypeSync (srcpath, type) {
++  if (type) return type
++  try {
++    var stats = fs.lstatSync(srcpath)
++  } catch (e) {
++    return 'file'
++  }
++  return (stats && stats.isDirectory()) ? 'dir' : 'file'
++}
++
++module.exports = {
++  symlinkType: symlinkType,
++  symlinkTypeSync: symlinkTypeSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/index.js npm/node_modules/fs-extra/lib/index.js
+--- npm/node_modules/fs-extra/lib/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/index.js	2015-11-03 02:33:57.000000000 +0000
+@@ -0,0 +1,38 @@
++var assign = require('./util/assign')
++
++var fse = {}
++var gfs = require('graceful-fs')
++
++// attach fs methods to fse
++Object.keys(gfs).forEach(function (key) {
++  fse[key] = gfs[key]
++})
++
++var fs = fse
++
++assign(fs, require('./copy'))
++assign(fs, require('./copy-sync'))
++assign(fs, require('./mkdirs'))
++assign(fs, require('./remove'))
++assign(fs, require('./json'))
++assign(fs, require('./move'))
++assign(fs, require('./streams'))
++assign(fs, require('./empty'))
++assign(fs, require('./ensure'))
++assign(fs, require('./output'))
++assign(fs, require('./walk'))
++
++module.exports = fs
++
++// maintain backwards compatibility for awhile
++var jsonfile = {}
++Object.defineProperty(jsonfile, 'spaces', {
++  get: function () {
++    return fs.spaces // found in ./json
++  },
++  set: function (val) {
++    fs.spaces = val
++  }
++})
++
++module.exports.jsonfile = jsonfile // so users of fs-extra can modify jsonFile.spaces
+diff -ruN npm/node_modules/fs-extra/lib/json/index.js npm/node_modules/fs-extra/lib/json/index.js
+--- npm/node_modules/fs-extra/lib/json/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/json/index.js	2015-11-03 02:53:05.000000000 +0000
+@@ -0,0 +1,9 @@
++var jsonFile = require('./jsonfile')
++
++jsonFile.outputJsonSync = require('./output-json-sync')
++jsonFile.outputJson = require('./output-json')
++// aliases
++jsonFile.outputJSONSync = require('./output-json-sync')
++jsonFile.outputJSON = require('./output-json')
++
++module.exports = jsonFile
+diff -ruN npm/node_modules/fs-extra/lib/json/jsonfile.js npm/node_modules/fs-extra/lib/json/jsonfile.js
+--- npm/node_modules/fs-extra/lib/json/jsonfile.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/json/jsonfile.js	2015-11-03 02:51:39.000000000 +0000
+@@ -0,0 +1,14 @@
++var jsonFile = require('jsonfile')
++
++module.exports = {
++  // jsonfile exports
++  readJson: jsonFile.readFile,
++  readJSON: jsonFile.readFile,
++  readJsonSync: jsonFile.readFileSync,
++  readJSONSync: jsonFile.readFileSync,
++  writeJson: jsonFile.writeFile,
++  writeJSON: jsonFile.writeFile,
++  writeJsonSync: jsonFile.writeFileSync,
++  writeJSONSync: jsonFile.writeFileSync,
++  spaces: 2 // default in fs-extra
++}
+diff -ruN npm/node_modules/fs-extra/lib/json/output-json.js npm/node_modules/fs-extra/lib/json/output-json.js
+--- npm/node_modules/fs-extra/lib/json/output-json.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/json/output-json.js	2015-11-03 02:55:39.000000000 +0000
+@@ -0,0 +1,24 @@
++var fs = require('graceful-fs')
++var path = require('path')
++var jsonFile = require('./jsonfile')
++var mkdir = require('../mkdirs')
++
++function outputJson (file, data, options, callback) {
++  if (typeof options === 'function') {
++    callback = options
++    options = {}
++  }
++
++  var dir = path.dirname(file)
++
++  fs.exists(dir, function (itDoes) {
++    if (itDoes) return jsonFile.writeJson(file, data, options, callback)
++
++    mkdir.mkdirs(dir, function (err) {
++      if (err) return callback(err)
++      jsonFile.writeJson(file, data, options, callback)
++    })
++  })
++}
++
++module.exports = outputJson
+diff -ruN npm/node_modules/fs-extra/lib/json/output-json-sync.js npm/node_modules/fs-extra/lib/json/output-json-sync.js
+--- npm/node_modules/fs-extra/lib/json/output-json-sync.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/json/output-json-sync.js	2015-11-03 02:54:01.000000000 +0000
+@@ -0,0 +1,16 @@
++var fs = require('graceful-fs')
++var path = require('path')
++var jsonFile = require('./jsonfile')
++var mkdir = require('../mkdirs')
++
++function outputJsonSync (file, data, options) {
++  var dir = path.dirname(file)
++
++  if (!fs.existsSync(dir)) {
++    mkdir.mkdirsSync(dir)
++  }
++
++  jsonFile.writeJsonSync(file, data, options)
++}
++
++module.exports = outputJsonSync
+diff -ruN npm/node_modules/fs-extra/lib/mkdirs/index.js npm/node_modules/fs-extra/lib/mkdirs/index.js
+--- npm/node_modules/fs-extra/lib/mkdirs/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/mkdirs/index.js	2015-06-20 13:54:24.000000000 +0100
+@@ -0,0 +1,9 @@
++module.exports = {
++  mkdirs: require('./mkdirs'),
++  mkdirsSync: require('./mkdirs-sync'),
++  // alias
++  mkdirp: require('./mkdirs'),
++  mkdirpSync: require('./mkdirs-sync'),
++  ensureDir: require('./mkdirs'),
++  ensureDirSync: require('./mkdirs-sync')
++}
+diff -ruN npm/node_modules/fs-extra/lib/mkdirs/mkdirs.js npm/node_modules/fs-extra/lib/mkdirs/mkdirs.js
+--- npm/node_modules/fs-extra/lib/mkdirs/mkdirs.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/mkdirs/mkdirs.js	2015-08-28 21:12:45.000000000 +0100
+@@ -0,0 +1,54 @@
++var fs = require('graceful-fs')
++var path = require('path')
++
++var o777 = parseInt('0777', 8)
++
++function mkdirs (p, opts, callback, made) {
++  if (typeof opts === 'function') {
++    callback = opts
++    opts = {}
++  } else if (!opts || typeof opts !== 'object') {
++    opts = { mode: opts }
++  }
++
++  var mode = opts.mode
++  var xfs = opts.fs || fs
++
++  if (mode === undefined) {
++    mode = o777 & (~process.umask())
++  }
++  if (!made) made = null
++
++  callback = callback || function () {}
++  p = path.resolve(p)
++
++  xfs.mkdir(p, mode, function (er) {
++    if (!er) {
++      made = made || p
++      return callback(null, made)
++    }
++    switch (er.code) {
++      case 'ENOENT':
++        if (path.dirname(p) === p) return callback(er)
++        mkdirs(path.dirname(p), opts, function (er, made) {
++          if (er) callback(er, made)
++          else mkdirs(p, opts, callback, made)
++        })
++        break
++
++      // In the case of any other error, just see if there's a dir
++      // there already.  If so, then hooray!  If not, then something
++      // is borked.
++      default:
++        xfs.stat(p, function (er2, stat) {
++          // if the stat fails, then that's super weird.
++          // let the original error be the failure reason.
++          if (er2 || !stat.isDirectory()) callback(er, made)
++          else callback(null, made)
++        })
++        break
++    }
++  })
++}
++
++module.exports = mkdirs
+diff -ruN npm/node_modules/fs-extra/lib/mkdirs/mkdirs-sync.js npm/node_modules/fs-extra/lib/mkdirs/mkdirs-sync.js
+--- npm/node_modules/fs-extra/lib/mkdirs/mkdirs-sync.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/mkdirs/mkdirs-sync.js	2015-06-20 13:54:32.000000000 +0100
+@@ -0,0 +1,49 @@
++var fs = require('graceful-fs')
++var path = require('path')
++
++var o777 = parseInt('0777', 8)
++
++function mkdirsSync (p, opts, made) {
++  if (!opts || typeof opts !== 'object') {
++    opts = { mode: opts }
++  }
++
++  var mode = opts.mode
++  var xfs = opts.fs || fs
++
++  if (mode === undefined) {
++    mode = o777 & (~process.umask())
++  }
++  if (!made) made = null
++
++  p = path.resolve(p)
++
++  try {
++    xfs.mkdirSync(p, mode)
++    made = made || p
++  } catch (err0) {
++    switch (err0.code) {
++      case 'ENOENT' :
++        made = mkdirsSync(path.dirname(p), opts, made)
++        mkdirsSync(p, opts, made)
++        break
++
++      // In the case of any other error, just see if there's a dir
++      // there already.  If so, then hooray!  If not, then something
++      // is borked.
++      default:
++        var stat
++        try {
++          stat = xfs.statSync(p)
++        } catch (err1) {
++          throw err0
++        }
++        if (!stat.isDirectory()) throw err0
++        break
++    }
++  }
++
++  return made
++}
++
++module.exports = mkdirsSync
+diff -ruN npm/node_modules/fs-extra/lib/move/index.js npm/node_modules/fs-extra/lib/move/index.js
+--- npm/node_modules/fs-extra/lib/move/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/move/index.js	2015-08-07 21:21:36.000000000 +0100
+@@ -0,0 +1,161 @@
++// most of this code was written by Andrew Kelley
++// licensed under the BSD license: see
++// https://github.com/andrewrk/node-mv/blob/master/package.json
++
++// this needs a cleanup
++
++var fs = require('graceful-fs')
++var ncp = require('../copy/ncp')
++var path = require('path')
++var rimraf = require('rimraf')
++var mkdirp = require('../mkdirs').mkdirs
++
++function mv (source, dest, options, callback) {
++  if (typeof options === 'function') {
++    callback = options
++    options = {}
++  }
++
++  var shouldMkdirp = ('mkdirp' in options) ? options.mkdirp : true
++  var clobber = ('clobber' in options) ? options.clobber : false
++
++  var limit = options.limit || 16
++
++  if (shouldMkdirp) {
++    mkdirs()
++  } else {
++    doRename()
++  }
++
++  function mkdirs () {
++    mkdirp(path.dirname(dest), function (err) {
++      if (err) return callback(err)
++      doRename()
++    })
++  }
++
++  function doRename () {
++    if (clobber) {
++      fs.rename(source, dest, function (err) {
++        if (!err) return callback()
++
++        if (err.code === 'ENOTEMPTY' || err.code === 'EEXIST') {
++          rimraf(dest, function (err) {
++            if (err) return callback(err)
++            options.clobber = false // just clobbered it, no need to do it again
++            mv(source, dest, options, callback)
++          })
++          return
++        }
++
++        // weird Windows shit
++        if (err.code === 'EPERM') {
++          setTimeout(function () {
++            rimraf(dest, function (err) {
++              if (err) return callback(err)
++              options.clobber = false
++              mv(source, dest, options, callback)
++            })
++          }, 200)
++          return
++        }
++
++        if (err.code !== 'EXDEV') return callback(err)
++        moveAcrossDevice(source, dest, clobber, limit, callback)
++      })
++    } else {
++      fs.link(source, dest, function (err) {
++        if (err) {
++          if (err.code === 'EXDEV' || err.code === 'EISDIR' || err.code === 'EPERM') {
++            moveAcrossDevice(source, dest, clobber, limit, callback)
++            return
++          }
++          callback(err)
++          return
++        }
++        fs.unlink(source, callback)
++      })
++    }
++  }
++}
++
++function moveAcrossDevice (source, dest, clobber, limit, callback) {
++  fs.stat(source, function (err, stat) {
++    if (err) {
++      callback(err)
++      return
++    }
++
++    if (stat.isDirectory()) {
++      moveDirAcrossDevice(source, dest, clobber, limit, callback)
++    } else {
++      moveFileAcrossDevice(source, dest, clobber, limit, callback)
++    }
++  })
++}
++
++function moveFileAcrossDevice (source, dest, clobber, limit, callback) {
++  var outFlags = clobber ? 'w' : 'wx'
++  var ins = fs.createReadStream(source)
++  var outs = fs.createWriteStream(dest, {flags: outFlags})
++
++  ins.on('error', function (err) {
++    ins.destroy()
++    outs.destroy()
++    outs.removeListener('close', onClose)
++
++    // may want to create a directory but `out` line above
++    // creates an empty file for us: See #108
++    // don't care about error here
++    fs.unlink(dest, function () {
++      // note: `err` here is from the input stream errror
++      if (err.code === 'EISDIR' || err.code === 'EPERM') {
++        moveDirAcrossDevice(source, dest, clobber, limit, callback)
++      } else {
++        callback(err)
++      }
++    })
++  })
++
++  outs.on('error', function (err) {
++    ins.destroy()
++    outs.destroy()
++    outs.removeListener('close', onClose)
++    callback(err)
++  })
++
++  outs.once('close', onClose)
++  ins.pipe(outs)
++
++  function onClose () {
++    fs.unlink(source, callback)
++  }
++}
++
++function moveDirAcrossDevice (source, dest, clobber, limit, callback) {
++  var options = {
++    stopOnErr: true,
++    clobber: false,
++    limit: limit
++  }
++
++  function startNcp () {
++    ncp(source, dest, options, function (errList) {
++      if (errList) return callback(errList[0])
++      rimraf(source, callback)
++    })
++  }
++
++  if (clobber) {
++    rimraf(dest, function (err) {
++      if (err) return callback(err)
++      startNcp()
++    })
++  } else {
++    startNcp()
++  }
++}
++
++module.exports = {
++  move: mv
++}
+diff -ruN npm/node_modules/fs-extra/lib/output/index.js npm/node_modules/fs-extra/lib/output/index.js
+--- npm/node_modules/fs-extra/lib/output/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/output/index.js	2015-06-24 16:46:33.000000000 +0100
+@@ -0,0 +1,35 @@
++var path = require('path')
++var fs = require('graceful-fs')
++var mkdir = require('../mkdirs')
++
++function outputFile (file, data, encoding, callback) {
++  if (typeof encoding === 'function') {
++    callback = encoding
++    encoding = 'utf8'
++  }
++
++  var dir = path.dirname(file)
++  fs.exists(dir, function (itDoes) {
++    if (itDoes) return fs.writeFile(file, data, encoding, callback)
++
++    mkdir.mkdirs(dir, function (err) {
++      if (err) return callback(err)
++
++      fs.writeFile(file, data, encoding, callback)
++    })
++  })
++}
++
++function outputFileSync (file, data, encoding) {
++  var dir = path.dirname(file)
++  if (fs.existsSync(dir)) {
++    return fs.writeFileSync.apply(fs, arguments)
++  }
++  mkdir.mkdirsSync(dir)
++  fs.writeFileSync.apply(fs, arguments)
++}
++
++module.exports = {
++  outputFile: outputFile,
++  outputFileSync: outputFileSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/remove/index.js npm/node_modules/fs-extra/lib/remove/index.js
+--- npm/node_modules/fs-extra/lib/remove/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/remove/index.js	2015-08-28 21:12:16.000000000 +0100
+@@ -0,0 +1,14 @@
++var rimraf = require('rimraf')
++
++function removeSync (dir) {
++  return rimraf.sync(dir)
++}
++
++function remove (dir, callback) {
++  return callback ? rimraf(dir, callback) : rimraf(dir, function () {})
++}
++
++module.exports = {
++  remove: remove,
++  removeSync: removeSync
++}
+diff -ruN npm/node_modules/fs-extra/lib/streams/create-output-stream.js npm/node_modules/fs-extra/lib/streams/create-output-stream.js
+--- npm/node_modules/fs-extra/lib/streams/create-output-stream.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/streams/create-output-stream.js	2015-06-21 15:49:41.000000000 +0100
+@@ -0,0 +1,43 @@
++var path = require('path')
++var fs = require('fs')
++var mkdir = require('../mkdirs')
++var WriteStream = fs.WriteStream
++
++function createOutputStream (file, options) {
++  var dirExists = false
++  var dir = path.dirname(file)
++  options = options || {}
++
++  // if fd is set with an actual number, file is created, hence directory is too
++  if (options.fd) {
++    return fs.createWriteStream(file, options)
++  } else {
++    // this hacks the WriteStream constructor from calling open()
++    options.fd = -1
++  }
++
++  var ws = new WriteStream(file, options)
++
++  var oldOpen = ws.open
++  ws.open = function () {
++    ws.fd = null // set actual fd
++    if (dirExists) return oldOpen.call(ws)
++
++    // this only runs once on first write
++    mkdir.mkdirs(dir, function (err) {
++      if (err) {
++        ws.destroy()
++        ws.emit('error', err)
++        return
++      }
++      dirExists = true
++      oldOpen.call(ws)
++    })
++  }
++
++  ws.open()
++
++  return ws
++}
++
++module.exports = createOutputStream
+diff -ruN npm/node_modules/fs-extra/lib/streams/index.js npm/node_modules/fs-extra/lib/streams/index.js
+--- npm/node_modules/fs-extra/lib/streams/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/streams/index.js	2015-06-21 15:48:15.000000000 +0100
+@@ -0,0 +1,3 @@
++module.exports = {
++  createOutputStream: require('./create-output-stream')
++}
+diff -ruN npm/node_modules/fs-extra/lib/util/assign.js npm/node_modules/fs-extra/lib/util/assign.js
+--- npm/node_modules/fs-extra/lib/util/assign.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/util/assign.js	2015-07-13 09:24:41.000000000 +0100
+@@ -0,0 +1,14 @@
++// simple mutable assign
++function assign () {
++  var args = [].slice.call(arguments).filter(function (i) { return i })
++  var dest = args.shift()
++  args.forEach(function (src) {
++    Object.keys(src).forEach(function (key) {
++      dest[key] = src[key]
++    })
++  })
++
++  return dest
++}
++
++module.exports = assign
+diff -ruN npm/node_modules/fs-extra/lib/util/utimes.js npm/node_modules/fs-extra/lib/util/utimes.js
+--- npm/node_modules/fs-extra/lib/util/utimes.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/util/utimes.js	2015-07-09 15:53:05.000000000 +0100
+@@ -0,0 +1,69 @@
++var fs = require('graceful-fs')
++var path = require('path')
++var os = require('os')
++
++// HFS, ext{2,3}, FAT do not, Node.js v0.10 does not
++function hasMillisResSync () {
++  var tmpfile = path.join('millis-test-sync' + Date.now().toString() + Math.random().toString().slice(2))
++  tmpfile = path.join(os.tmpdir(), tmpfile)
++
++  // 550 millis past UNIX epoch
++  var d = new Date(1435410243862)
++  fs.writeFileSync(tmpfile, 'https://github.com/jprichardson/node-fs-extra/pull/141')
++  var fd = fs.openSync(tmpfile, 'r+')
++  fs.futimesSync(fd, d, d)
++  fs.closeSync(fd)
++  return fs.statSync(tmpfile).mtime > 1435410243000
++}
++
++function hasMillisRes (callback) {
++  var tmpfile = path.join('millis-test' + Date.now().toString() + Math.random().toString().slice(2))
++  tmpfile = path.join(os.tmpdir(), tmpfile)
++
++  // 550 millis past UNIX epoch
++  var d = new Date(1435410243862)
++  fs.writeFile(tmpfile, 'https://github.com/jprichardson/node-fs-extra/pull/141', function (err) {
++    if (err) return callback(err)
++    fs.open(tmpfile, 'r+', function (err, fd) {
++      if (err) return callback(err)
++      fs.futimes(fd, d, d, function (err) {
++        if (err) return callback(err)
++        fs.close(fd, function (err) {
++          if (err) return callback(err)
++          fs.stat(tmpfile, function (err, stats) {
++            if (err) return callback(err)
++            callback(null, stats.mtime > 1435410243000)
++          })
++        })
++      })
++    })
++  })
++}
++
++function timeRemoveMillis (timestamp) {
++  if (typeof timestamp === 'number') {
++    return Math.floor(timestamp / 1000) * 1000
++  } else if (timestamp instanceof Date) {
++    return new Date(Math.floor(timestamp.getTime() / 1000) * 1000)
++  } else {
++    throw new Error('fs-extra: timeRemoveMillis() unknown parameter type')
++  }
++}
++
++function utimesMillis (path, atime, mtime, callback) {
++  // if (!HAS_MILLIS_RES) return fs.utimes(path, atime, mtime, callback)
++  fs.open(path, 'r+', function (err, fd) {
++    if (err) return callback(err)
++    fs.futimes(fd, atime, mtime, function (err) {
++      if (err) return callback(err)
++      fs.close(fd, callback)
++    })
++  })
++}
++
++module.exports = {
++  hasMillisRes: hasMillisRes,
++  hasMillisResSync: hasMillisResSync,
++  timeRemoveMillis: timeRemoveMillis,
++  utimesMillis: utimesMillis
++}
+diff -ruN npm/node_modules/fs-extra/lib/walk/index.js npm/node_modules/fs-extra/lib/walk/index.js
+--- npm/node_modules/fs-extra/lib/walk/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/lib/walk/index.js	2015-10-25 15:39:38.000000000 +0000
+@@ -0,0 +1,5 @@
++var klaw = require('klaw')
++
++module.exports = {
++  walk: klaw
++}
+diff -ruN npm/node_modules/fs-extra/LICENSE npm/node_modules/fs-extra/LICENSE
+--- npm/node_modules/fs-extra/LICENSE	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/LICENSE	2016-01-27 15:45:08.000000000 +0000
+@@ -0,0 +1,15 @@
++(The MIT License)
++
++Copyright (c) 2011-2016 JP Richardson
++
++Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
++(the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
++ merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
++WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
++OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+diff -ruN npm/node_modules/fs-extra/.npmignore npm/node_modules/fs-extra/.npmignore
+--- npm/node_modules/fs-extra/.npmignore	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/.npmignore	2015-07-11 03:44:21.000000000 +0100
+@@ -0,0 +1,8 @@
++.nyc_output/
++coverage/
++test/
++.travis.yml
++appveyor.yml
++lib/**/__tests__/
++test/readme.md
++test.js
+diff -ruN npm/node_modules/fs-extra/package.json npm/node_modules/fs-extra/package.json
+--- npm/node_modules/fs-extra/package.json	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/package.json	2016-03-10 15:17:40.238180000 +0000
+@@ -0,0 +1,113 @@
++{
++  "_args": [
++    [
++      "fs-extra@*",
++      "/home/graingert/npm_patching/npm"
++    ]
++  ],
++  "_from": "fs-extra@*",
++  "_id": "fs-extra@0.26.5",
++  "_inCache": true,
++  "_installable": true,
++  "_location": "/fs-extra",
++  "_nodeVersion": "5.3.0",
++  "_npmUser": {
++    "email": "jprichardson@gmail.com",
++    "name": "jprichardson"
++  },
++  "_npmVersion": "3.5.2",
++  "_phantomChildren": {},
++  "_requested": {
++    "name": "fs-extra",
++    "raw": "fs-extra@*",
++    "rawSpec": "*",
++    "scope": null,
++    "spec": "*",
++    "type": "range"
++  },
++  "_requiredBy": [
++    "/"
++  ],
++  "_resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-0.26.5.tgz",
++  "_shasum": "53ac74667ca083fd2dc1712c813039ca32d69a7f",
++  "_shrinkwrap": null,
++  "_spec": "fs-extra@*",
++  "_where": "/home/graingert/npm_patching/npm",
++  "author": {
++    "email": "jprichardson@gmail.com",
++    "name": "JP Richardson"
++  },
++  "bugs": {
++    "url": "https://github.com/jprichardson/node-fs-extra/issues"
++  },
++  "dependencies": {
++    "graceful-fs": "^4.1.2",
++    "jsonfile": "^2.1.0",
++    "klaw": "^1.0.0",
++    "path-is-absolute": "^1.0.0",
++    "rimraf": "^2.2.8"
++  },
++  "description": "fs-extra contains methods that aren't included in the vanilla Node.js fs package. Such as mkdir -p, cp -r, and rm -rf.",
++  "devDependencies": {
++    "coveralls": "^2.11.2",
++    "istanbul": "^0.3.5",
++    "minimist": "^1.1.1",
++    "mocha": "^2.1.0",
++    "read-dir-files": "^0.1.1",
++    "secure-random": "^1.1.1",
++    "semver": "^4.3.6",
++    "standard": "^5.3.1"
++  },
++  "directories": {},
++  "dist": {
++    "shasum": "53ac74667ca083fd2dc1712c813039ca32d69a7f",
++    "tarball": "http://registry.npmjs.org/fs-extra/-/fs-extra-0.26.5.tgz"
++  },
++  "gitHead": "4c44f48317845075ef59eb08df50f48fefb3ff5d",
++  "homepage": "https://github.com/jprichardson/node-fs-extra",
++  "keywords": [
++    "copy",
++    "create",
++    "delete",
++    "directory",
++    "extra",
++    "extra",
++    "file",
++    "file system",
++    "fs",
++    "json",
++    "mkdir",
++    "mkdirp",
++    "mkdirs",
++    "move",
++    "output",
++    "read",
++    "recursive",
++    "remove",
++    "text",
++    "touch",
++    "write"
++  ],
++  "license": "MIT",
++  "main": "./lib/index",
++  "maintainers": [
++    {
++      "name": "jprichardson",
++      "email": "jprichardson@gmail.com"
++    }
++  ],
++  "name": "fs-extra",
++  "optionalDependencies": {},
++  "readme": "ERROR: No README data found!",
++  "repository": {
++    "type": "git",
++    "url": "git+https://github.com/jprichardson/node-fs-extra.git"
++  },
++  "scripts": {
++    "coverage": "istanbul cover test.js",
++    "coveralls": "npm run coverage && coveralls < coverage/lcov.info",
++    "test": "standard && node test.js",
++    "test-find": "find ./lib/**/__tests__ -name *.test.js | xargs mocha"
++  },
++  "version": "0.26.5"
++}
+diff -ruN npm/node_modules/fs-extra/README.md npm/node_modules/fs-extra/README.md
+--- npm/node_modules/fs-extra/README.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/fs-extra/README.md	2016-01-27 15:45:08.000000000 +0000
+@@ -0,0 +1,581 @@
++Node.js: fs-extra
++=================
++
++[![build status](https://api.travis-ci.org/jprichardson/node-fs-extra.svg)](http://travis-ci.org/jprichardson/node-fs-extra)
++[![windows Build status](https://img.shields.io/appveyor/ci/jprichardson/node-fs-extra/master.svg?label=windows%20build)](https://ci.appveyor.com/project/jprichardson/node-fs-extra/branch/master)
++[![downloads per month](http://img.shields.io/npm/dm/fs-extra.svg)](https://www.npmjs.org/package/fs-extra)
++[![Coverage Status](https://img.shields.io/coveralls/jprichardson/node-fs-extra.svg)](https://coveralls.io/r/jprichardson/node-fs-extra)
++
++
++`fs-extra` adds file system methods that aren't included in the native `fs` module. It is a drop in replacement for `fs`.
++
++**NOTE (2016-01-13):** Node v0.10 will be unsupported AFTER Ubuntu LTS releases their next version AND [Amazon Lambda
++upgrades](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) its Node.js runtime from v0.10.
++I anticipate this will happen around late spring / summer 2016. Please prepare accordingly. After this, we'll make a strong push
++for a 1.0.0 release.
++
++
++Why?
++----
++
++I got tired of including `mkdirp`, `rimraf`, and `cp -r` in most of my projects.
++
++
++
++
++Installation
++------------
++
++    npm install --save fs-extra
++
++
++
++Usage
++-----
++
++`fs-extra` is a drop in replacement for native `fs`. All methods in `fs` are unmodified and attached to `fs-extra`.
++
++You don't ever need to include the original `fs` module again:
++
++```js
++var fs = require('fs') // this is no longer necessary
++```
++
++you can now do this:
++
++```js
++var fs = require('fs-extra')
++```
++
++or if you prefer to make it clear that you're using `fs-extra` and not `fs`, you may want
++to name your `fs` variable `fse` like so:
++
++```js
++var fse = require('fs-extra')
++```
++
++you can also keep both, but it's redundant:
++
++```js
++var fs = require('fs')
++var fse = require('fs-extra')
++```
++
++
++Methods
++-------
++- [copy](#copy)
++- [copySync](#copysync)
++- [createOutputStream](#createoutputstreamfile-options)
++- [emptyDir](#emptydirdir-callback)
++- [emptyDirSync](#emptydirdir-callback)
++- [ensureFile](#ensurefilefile-callback)
++- [ensureFileSync](#ensurefilefile-callback)
++- [ensureDir](#ensuredirdir-callback)
++- [ensureDirSync](#ensuredirdir-callback)
++- [ensureLink](#ensurelinksrcpath-dstpath-callback)
++- [ensureLinkSync](#ensurelinksrcpath-dstpath-callback)
++- [ensureSymlink](#ensuresymlinksrcpath-dstpath-type-callback)
++- [ensureSymlinkSync](#ensuresymlinksrcpath-dstpath-type-callback)
++- [mkdirs](#mkdirsdir-callback)
++- [mkdirsSync](#mkdirsdir-callback)
++- [move](#movesrc-dest-options-callback)
++- [outputFile](#outputfilefile-data-callback)
++- [outputFileSync](#outputfilefile-data-callback)
++- [outputJson](#outputjsonfile-data-callback)
++- [outputJsonSync](#outputjsonfile-data-callback)
++- [readJson](#readjsonfile-options-callback)
++- [readJsonSync](#readjsonfile-options-callback)
++- [remove](#removedir-callback)
++- [removeSync](#removedir-callback)
++- [walk](#walk)
++- [writeJson](#writejsonfile-object-options-callback)
++- [writeJsonSync](#writejsonfile-object-options-callback)
++
++
++**NOTE:** You can still use the native Node.js methods. They are copied over to `fs-extra`.
++
++
++### copy()
++
++**copy(src, dest, [options], callback)**
++
++
++Copy a file or directory. The directory can have contents. Like `cp -r`.
++
++Options:
++clobber (boolean): overwrite existing file or directory
++preserveTimestamps (boolean): will set last modification and access times to the ones of the original source files, default is `false`.
++filter: Function or RegExp to filter copied files. If function, return true to include, false to exclude. If RegExp, same as function, where `filter` is `filter.test`.
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++fs.copy('/tmp/myfile', '/tmp/mynewfile', function (err) {
++  if (err) return console.error(err)
++  console.log("success!")
++}) // copies file
++
++fs.copy('/tmp/mydir', '/tmp/mynewdir', function (err) {
++  if (err) return console.error(err)
++  console.log('success!')
++}) // copies directory, even if it has subdirectories or files
++```
++
++### copySync()
++
++**copySync(src, dest, [options])**
++
++Synchronously copies a file or directory. The directory can have contents.
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++try {
++  fs.copySync('/tmp/mydir', '/tmp/mynewdir'
++} catch (err) {
++  console.error('Oh no, there was an error: ' + err.message)
++}
++```
++
++
++
++### createOutputStream(file, [options])
++
++Exactly like `createWriteStream`, but if the directory does not exist, it's created.
++
++Examples:
++
++```js
++var fs = require('fs-extra')
++
++// if /tmp/some does not exist, it is created
++var ws = fs.createOutputStream('/tmp/some/file.txt')
++ws.write('hello\n')
++```
++
++Note on naming: you'll notice that fs-extra has some methods like `fs.outputJson`, `fs.outputFile`, etc that use the
++word `output` to denote that if the containing directory does not exist, it should be created. If you can think of a
++better succinct nomenclature for these methods, please open an issue for discussion. Thanks.
++
++
++### emptyDir(dir, [callback])
++
++Ensures that a directory is empty. If the directory does not exist, it is created. The directory itself is not deleted.
++
++Alias: `emptydir()`
++
++Sync: `emptyDirSync()`, `emptydirSync()`
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++// assume this directory has a lot of files and folders
++fs.emptyDir('/tmp/some/dir', function (err) {
++  if (!err) console.log('success!')
++})
++```
++
++
++### ensureFile(file, callback)
++
++Ensures that the file exists. If the file that is requested to be created is in directories that do not exist, these directories are created. If the file already exists, it is **NOT MODIFIED**.
++
++Alias: `createFile()`
++
++Sync: `createFileSync()`,`ensureFileSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++var file = '/tmp/this/path/does/not/exist/file.txt'
++fs.ensureFile(file, function (err) {
++  console.log(err) // => null
++  // file has now been created, including the directory it is to be placed in
++})
++```
++
++
++### ensureDir(dir, callback)
++
++Ensures that the directory exists. If the directory structure does not exist, it is created.
++
++Sync: `ensureDirSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++var dir = '/tmp/this/path/does/not/exist'
++fs.ensureDir(dir, function (err) {
++  console.log(err) // => null
++  // dir has now been created, including the directory it is to be placed in
++})
++```
++
++
++### ensureLink(srcpath, dstpath, callback)
++
++Ensures that the link exists. If the directory structure does not exist, it is created.
++
++Sync: `ensureLinkSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++var srcpath = '/tmp/file.txt'
++var dstpath = '/tmp/this/path/does/not/exist/file.txt'
++fs.ensureLink(srcpath, dstpath, function (err) {
++  console.log(err) // => null
++  // link has now been created, including the directory it is to be placed in
++})
++```
++
++
++### ensureSymlink(srcpath, dstpath, [type], callback)
++
++Ensures that the symlink exists. If the directory structure does not exist, it is created.
++
++Sync: `ensureSymlinkSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++var srcpath = '/tmp/file.txt'
++var dstpath = '/tmp/this/path/does/not/exist/file.txt'
++fs.ensureSymlink(srcpath, dstpath, function (err) {
++  console.log(err) // => null
++  // symlink has now been created, including the directory it is to be placed in
++})
++```
++
++
++### mkdirs(dir, callback)
++
++Creates a directory. If the parent hierarchy doesn't exist, it's created. Like `mkdir -p`.
++
++Alias: `mkdirp()`
++
++Sync: `mkdirsSync()` / `mkdirpSync()`
++
++
++Examples:
++
++```js
++var fs = require('fs-extra')
++
++fs.mkdirs('/tmp/some/long/path/that/prob/doesnt/exist', function (err) {
++  if (err) return console.error(err)
++  console.log("success!")
++})
++
++fs.mkdirsSync('/tmp/another/path')
++```
++
++
++### move(src, dest, [options], callback)
++
++Moves a file or directory, even across devices.
++
++Options:
++clobber (boolean): overwrite existing file or directory
++limit (number): number of concurrent moves, see ncp for more information
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++fs.move('/tmp/somefile', '/tmp/does/not/exist/yet/somefile', function (err) {
++  if (err) return console.error(err)
++  console.log("success!")
++})
++```
++
++
++### outputFile(file, data, [options], callback)
++
++Almost the same as `writeFile` (i.e. it [overwrites](http://pages.citebite.com/v2o5n8l2f5reb)), except that if the parent directory does not exist, it's created. `options` are what you'd pass to [`fs.writeFile()`](https://nodejs.org/api/fs.html#fs_fs_writefile_file_data_options_callback).
++
++Sync: `outputFileSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++var file = '/tmp/this/path/does/not/exist/file.txt'
++
++fs.outputFile(file, 'hello!', function (err) {
++  console.log(err) // => null
++
++  fs.readFile(file, 'utf8', function (err, data) {
++    console.log(data) // => hello!
++  })
++})
++```
++
++
++
++### outputJson(file, data, [options], callback)
++
++Almost the same as `writeJson`, except that if the directory does not exist, it's created.
++`options` are what you'd pass to [`jsonFile.writeFile()`](https://github.com/jprichardson/node-jsonfile#writefilefilename-options-callback).
++
++Alias: `outputJSON()`
++
++Sync: `outputJsonSync()`, `outputJSONSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++var file = '/tmp/this/path/does/not/exist/file.txt'
++
++fs.outputJson(file, {name: 'JP'}, function (err) {
++  console.log(err) // => null
++
++  fs.readJson(file, function(err, data) {
++    console.log(data.name) // => JP
++  })
++})
++```
++
++
++
++### readJson(file, [options], callback)
++
++Reads a JSON file and then parses it into an object. `options` are the same
++that you'd pass to [`jsonFile.readFile`](https://github.com/jprichardson/node-jsonfile#readfilefilename-options-callback).
++
++Alias: `readJSON()`
++
++Sync: `readJsonSync()`, `readJSONSync()`
++
++
++Example:
++
++```js
++var fs = require('fs-extra')
++
++fs.readJson('./package.json', function (err, packageObj) {
++  console.log(packageObj.version) // => 0.1.3
++})
++```
++
++`readJsonSync()` can take a `throws` option set to `false` and it won't throw if the JSON is invalid. Example:
++
++```js
++var fs = require('fs-extra')
++var file = path.join('/tmp/some-invalid.json')
++var data = '{not valid JSON'
++fs.writeFileSync(file, data)
++
++var obj = fs.readJsonSync(file, {throws: false})
++console.log(obj) // => null
++```
++
++
++### remove(dir, callback)
++
++Removes a file or directory. The directory can have contents. Like `rm -rf`.
++
++Sync: `removeSync()`
++
++
++Examples:
++
++```js
++var fs = require('fs-extra')
++
++fs.remove('/tmp/myfile', function (err) {
++  if (err) return console.error(err)
++
++  console.log('success!')
++})
++
++fs.removeSync('/home/jprichardson') //I just deleted my entire HOME directory.
++```
++
++### walk()
++
++**walk(dir, [streamOptions])**
++
++The function `walk()` from the module [`klaw`](https://github.com/jprichardson/node-klaw).
++
++Returns a [Readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) that iterates
++through every file and directory starting with `dir` as the root. Every `read()` or `data` event
++returns an object with two properties: `path` and `stats`. `path` is the full path of the file and
++`stats` is an instance of [fs.Stats](https://nodejs.org/api/fs.html#fs_class_fs_stats).
++
++Streams 1 (push) example:
++
++```js
++var items = [] // files, directories, symlinks, etc
++fse.walk(TEST_DIR)
++  .on('data', function (item) {
++    items.push(item.path)
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files]
++  })
++```
++
++Streams 2 & 3 (pull) example:
++
++```js
++var items = [] // files, directories, symlinks, etc
++fse.walk(TEST_DIR)
++  .on('readable', function () {
++    var item
++    while ((item = this.read())) {
++      items.push(item.path)
++    }
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files]
++  })
++```
++
++If you're not sure of the differences on Node.js streams 1, 2, 3 then I'd
++recommend this resource as a good starting point: https://strongloop.com/strongblog/whats-new-io-js-beta-streams3/.
++
++**See [`klaw` documentation](https://github.com/jprichardson/node-klaw) for more detailed usage.**
++
++
++### writeJson(file, object, [options], callback)
++
++Writes an object to a JSON file. `options` are the same that
++you'd pass to [`jsonFile.writeFile()`](https://github.com/jprichardson/node-jsonfile#writefilefilename-options-callback).
++
++Alias: `writeJSON()`
++
++Sync: `writeJsonSync()`, `writeJSONSync()`
++
++Example:
++
++```js
++var fs = require('fs-extra')
++fs.writeJson('./package.json', {name: 'fs-extra'}, function (err) {
++  console.log(err)
++})
++```
++
++
++Third Party
++-----------
++
++### Promises
++
++Use [Bluebird](https://github.com/petkaantonov/bluebird). See https://github.com/petkaantonov/bluebird/blob/master/API.md#promisification. `fs-extra` is
++explicitly listed as supported.
++
++```js
++var Promise = require('bluebird')
++var fs = Promise.promisifyAll(require('fs-extra'))
++```
++
++Or you can use the package [`fs-extra-promise`](https://github.com/overlookmotel/fs-extra-promise) that marries the two together.
++
++
++### TypeScript
++
++If you like TypeScript, you can use `fs-extra` with it: https://github.com/borisyankov/DefinitelyTyped/tree/master/fs-extra
++
++
++### File / Directory Watching
++
++If you want to watch for changes to files or directories, then you should use [chokidar](https://github.com/paulmillr/chokidar).
++
++
++### Misc.
++
++- [mfs](https://github.com/cadorn/mfs) - Monitor your fs-extra calls.
++
++
++
++Hacking on fs-extra
++-------------------
++
++Wanna hack on `fs-extra`? Great! Your help is needed! [fs-extra is one of the most depended upon Node.js packages](http://nodei.co/npm/fs-extra.png?downloads=true&downloadRank=true&stars=true). This project
++uses [JavaScript Standard Style](https://github.com/feross/standard) - if the name or style choices bother you,
++you're gonna have to get over it :) If `standard` is good enough for `npm`, it's good enough for `fs-extra`.
++
++[![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
++
++What's needed?
++- First, take a look at existing issues. Those are probably going to be where the priority lies.
++- More tests for edge cases. Specifically on different platforms. There can never be enough tests.
++- Really really help with the Windows tests. See appveyor outputs for more info.
++- Improve test coverage. See coveralls output for more info.
++- A directory walker. Probably this one: https://github.com/thlorenz/readdirp imported into `fs-extra`.
++- After the directory walker is integrated, any function that needs to traverse directories like
++`copy`, `remove`, or `mkdirs` should be built on top of it.
++
++Note: If you make any big changes, **you should definitely post an issue for discussion first.**
++
++
++Naming
++------
++
++I put a lot of thought into the naming of these functions. Inspired by @coolaj86's request. So he deserves much of the credit for raising the issue. See discussion(s) here:
++
++* https://github.com/jprichardson/node-fs-extra/issues/2
++* https://github.com/flatiron/utile/issues/11
++* https://github.com/ryanmcgrath/wrench-js/issues/29
++* https://github.com/substack/node-mkdirp/issues/17
++
++First, I believe that in as many cases as possible, the [Node.js naming schemes](http://nodejs.org/api/fs.html) should be chosen. However, there are problems with the Node.js own naming schemes.
++
++For example, `fs.readFile()` and `fs.readdir()`: the **F** is capitalized in *File* and the **d** is not capitalized in *dir*. Perhaps a bit pedantic, but they should still be consistent. Also, Node.js has chosen a lot of POSIX naming schemes, which I believe is great. See: `fs.mkdir()`, `fs.rmdir()`, `fs.chown()`, etc.
++
++We have a dilemma though. How do you consistently name methods that perform the following POSIX commands: `cp`, `cp -r`, `mkdir -p`, and `rm -rf`?
++
++My perspective: when in doubt, err on the side of simplicity. A directory is just a hierarchical grouping of directories and files. Consider that for a moment. So when you want to copy it or remove it, in most cases you'll want to copy or remove all of its contents. When you want to create a directory, if the directory that it's suppose to be contained in does not exist, then in most cases you'll want to create that too.
++
++So, if you want to remove a file or a directory regardless of whether it has contents, just call `fs.remove(path)`. If you want to copy a file or a directory whether it has contents, just call `fs.copy(source, destination)`. If you want to create a directory regardless of whether its parent directories exist, just call `fs.mkdirs(path)` or `fs.mkdirp(path)`.
++
++
++Credit
++------
++
++`fs-extra` wouldn't be possible without using the modules from the following authors:
++
++- [Isaac Shlueter](https://github.com/isaacs)
++- [Charlie McConnel](https://github.com/avianflu)
++- [James Halliday](https://github.com/substack)
++- [Andrew Kelley](https://github.com/andrewrk)
++
++
++
++
++License
++-------
++
++Licensed under MIT
++
++Copyright (c) 2011-2016 [JP Richardson](https://github.com/jprichardson)
++
++[1]: http://nodejs.org/docs/latest/api/fs.html
++
++
++[jsonfile]: https://github.com/jprichardson/node-jsonfile
+diff -ruN npm/node_modules/jsonfile/CHANGELOG.md npm/node_modules/jsonfile/CHANGELOG.md
+--- npm/node_modules/jsonfile/CHANGELOG.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/jsonfile/CHANGELOG.md	2015-10-14 12:22:43.000000000 +0100
+@@ -0,0 +1,66 @@
++2.2.3 / 2015-10-14
++------------------
++- include file name in parse error. See: https://github.com/jprichardson/node-jsonfile/pull/34
++
++2.2.2 / 2015-09-16
++------------------
++- split out tests into separate files
++- fixed `throws` when set to `true` in `readFileSync()`. See: https://github.com/jprichardson/node-jsonfile/pull/33
++
++2.2.1 / 2015-06-25
++------------------
++- fixed regression when passing in string as encoding for options in `writeFile()` and `writeFileSync()`. See: https://github.com/jprichardson/node-jsonfile/issues/28
++
++2.2.0 / 2015-06-25
++------------------
++- added `options.spaces` to `writeFile()` and `writeFileSync()`
++
++2.1.2 / 2015-06-22
++------------------
++- fixed if passed `readFileSync(file, 'utf8')`. See: https://github.com/jprichardson/node-jsonfile/issues/25
++
++2.1.1 / 2015-06-19
++------------------
++- fixed regressions if `null` is passed for options. See: https://github.com/jprichardson/node-jsonfile/issues/24
++
++2.1.0 / 2015-06-19
++------------------
++- cleanup: JavaScript Standard Style, rename files, dropped terst for assert
++- methods now support JSON revivers/replacers
++
++2.0.1 / 2015-05-24
++------------------
++- update license attribute https://github.com/jprichardson/node-jsonfile/pull/21
++
++2.0.0 / 2014-07-28
++------------------
++* added `\n` to end of file on write. [#14](https://github.com/jprichardson/node-jsonfile/pull/14)
++* added `options.throws` to `readFileSync()`
++* dropped support for Node v0.8
++
++1.2.0 / 2014-06-29
++------------------
++* removed semicolons
++* bugfix: passed `options` to `fs.readFile` and `fs.readFileSync`. This technically changes behavior, but
++changes it according to docs. #12
++
++1.1.1 / 2013-11-11
++------------------
++* fixed catching of callback bug (ffissore / #5)
++
++1.1.0 / 2013-10-11
++------------------
++* added `options` param to methods, (seanodell / #4)
++
++1.0.1 / 2013-09-05
++------------------
++* removed `homepage` field from package.json to remove NPM warning
++
++1.0.0 / 2013-06-28
++------------------
++* added `.npmignore`, #1
++* changed spacing default from `4` to `2` to follow Node conventions
++
++0.0.1 / 2012-09-10
++------------------
++* Initial release.
+diff -ruN npm/node_modules/jsonfile/index.js npm/node_modules/jsonfile/index.js
+--- npm/node_modules/jsonfile/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/jsonfile/index.js	2015-10-14 12:21:29.000000000 +0100
+@@ -0,0 +1,87 @@
++var fs = require('fs')
++
++function readFile (file, options, callback) {
++  if (callback == null) {
++    callback = options
++    options = {}
++  }
++
++  fs.readFile(file, options, function (err, data) {
++    if (err) return callback(err)
++
++    var obj
++    try {
++      obj = JSON.parse(data, options ? options.reviver : null)
++    } catch (err2) {
++      err2.message = file + ': ' + err2.message
++      return callback(err2)
++    }
++
++    callback(null, obj)
++  })
++}
++
++function readFileSync (file, options) {
++  options = options || {}
++  if (typeof options === 'string') {
++    options = {encoding: options}
++  }
++
++  var shouldThrow = 'throws' in options ? options.throws : true
++  var content = fs.readFileSync(file, options)
++
++  try {
++    return JSON.parse(content, options.reviver)
++  } catch (err) {
++    if (shouldThrow) {
++      err.message = file + ': ' + err.message
++      throw err
++    } else {
++      return null
++    }
++  }
++}
++
++function writeFile (file, obj, options, callback) {
++  if (callback == null) {
++    callback = options
++    options = {}
++  }
++
++  var spaces = typeof options === 'object' && options !== null
++    ? 'spaces' in options
++    ? options.spaces : this.spaces
++    : this.spaces
++
++  var str = ''
++  try {
++    str = JSON.stringify(obj, options ? options.replacer : null, spaces) + '\n'
++  } catch (err) {
++    if (callback) return callback(err, null)
++  }
++
++  fs.writeFile(file, str, options, callback)
++}
++
++function writeFileSync (file, obj, options) {
++  options = options || {}
++
++  var spaces = typeof options === 'object' && options !== null
++    ? 'spaces' in options
++    ? options.spaces : this.spaces
++    : this.spaces
++
++  var str = JSON.stringify(obj, options.replacer, spaces) + '\n'
++  // not sure if fs.writeFileSync returns anything, but just in case
++  return fs.writeFileSync(file, str, options)
++}
++
++var jsonfile = {
++  spaces: null,
++  readFile: readFile,
++  readFileSync: readFileSync,
++  writeFile: writeFile,
++  writeFileSync: writeFileSync
++}
++
++module.exports = jsonfile
+diff -ruN npm/node_modules/jsonfile/LICENSE npm/node_modules/jsonfile/LICENSE
+--- npm/node_modules/jsonfile/LICENSE	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/jsonfile/LICENSE	2015-06-22 21:47:56.000000000 +0100
+@@ -0,0 +1,15 @@
++(The MIT License)
++
++Copyright (c) 2012-2015, JP Richardson <jprichardson@gmail.com>
++
++Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
++(the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify,
++ merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
++ furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
++WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
++OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
++ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+diff -ruN npm/node_modules/jsonfile/.npmignore npm/node_modules/jsonfile/.npmignore
+--- npm/node_modules/jsonfile/.npmignore	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/jsonfile/.npmignore	2015-06-22 21:47:56.000000000 +0100
+@@ -0,0 +1,2 @@
++test/
++.travis.yml
+\ No newline at end of file
+diff -ruN npm/node_modules/jsonfile/package.json npm/node_modules/jsonfile/package.json
+--- npm/node_modules/jsonfile/package.json	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/jsonfile/package.json	2016-03-10 15:17:40.214179000 +0000
+@@ -0,0 +1,84 @@
++{
++  "_args": [
++    [
++      "jsonfile@^2.1.0",
++      "/home/graingert/npm_patching/npm/node_modules/fs-extra"
++    ]
++  ],
++  "_from": "jsonfile@>=2.1.0 <3.0.0",
++  "_id": "jsonfile@2.2.3",
++  "_inCache": true,
++  "_installable": true,
++  "_location": "/jsonfile",
++  "_nodeVersion": "4.1.0",
++  "_npmUser": {
++    "email": "jprichardson@gmail.com",
++    "name": "jprichardson"
++  },
++  "_npmVersion": "2.14.3",
++  "_phantomChildren": {},
++  "_requested": {
++    "name": "jsonfile",
++    "raw": "jsonfile@^2.1.0",
++    "rawSpec": "^2.1.0",
++    "scope": null,
++    "spec": ">=2.1.0 <3.0.0",
++    "type": "range"
++  },
++  "_requiredBy": [
++    "/fs-extra"
++  ],
++  "_resolved": "https://registry.npmjs.org/jsonfile/-/jsonfile-2.2.3.tgz",
++  "_shasum": "e252b99a6af901d3ec41f332589c90509a7bc605",
++  "_shrinkwrap": null,
++  "_spec": "jsonfile@^2.1.0",
++  "_where": "/home/graingert/npm_patching/npm/node_modules/fs-extra",
++  "author": {
++    "email": "jprichardson@gmail.com",
++    "name": "JP Richardson"
++  },
++  "bugs": {
++    "url": "https://github.com/jprichardson/node-jsonfile/issues"
++  },
++  "dependencies": {},
++  "description": "Easily read/write JSON files.",
++  "devDependencies": {
++    "mocha": "2.x",
++    "rimraf": "^2.4.0",
++    "standard": "4.x"
++  },
++  "directories": {},
++  "dist": {
++    "shasum": "e252b99a6af901d3ec41f332589c90509a7bc605",
++    "tarball": "http://registry.npmjs.org/jsonfile/-/jsonfile-2.2.3.tgz"
++  },
++  "gitHead": "7688bc23d0800f8a98ca35f40a82950e54b4cad1",
++  "homepage": "https://github.com/jprichardson/node-jsonfile#readme",
++  "keywords": [
++    "file",
++    "fs",
++    "fs-extra",
++    "json",
++    "read",
++    "write"
++  ],
++  "license": "MIT",
++  "main": "index.js",
++  "maintainers": [
++    {
++      "name": "jprichardson",
++      "email": "jprichardson@gmail.com"
++    }
++  ],
++  "name": "jsonfile",
++  "optionalDependencies": {},
++  "readme": "ERROR: No README data found!",
++  "repository": {
++    "type": "git",
++    "url": "git+ssh://git@github.com/jprichardson/node-jsonfile.git"
++  },
++  "scripts": {
++    "test": "standard && mocha"
++  },
++  "version": "2.2.3"
++}
+diff -ruN npm/node_modules/jsonfile/README.md npm/node_modules/jsonfile/README.md
+--- npm/node_modules/jsonfile/README.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/jsonfile/README.md	2015-06-25 14:36:06.000000000 +0100
+@@ -0,0 +1,165 @@
++Node.js - jsonfile
++================
++
++Easily read/write JSON files.
++
++[![build status](https://secure.travis-ci.org/jprichardson/node-jsonfile.svg)](http://travis-ci.org/jprichardson/node-jsonfile)
++
++
++Why?
++----
++
++Writing `JSON.stringify()` and then `fs.writeFile()` and `JSON.parse()` with `fs.readFile()` enclosed in `try/catch` blocks became annoying.
++
++
++
++Installation
++------------
++
++    npm install jsonfile --save
++
++
++
++API
++---
++
++### readFile(filename, [options], callback)
++
++`options`: Pass in any `fs.readFile` options or set `reviver` for a [JSON reviver](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse).
++
++
++```js
++var jsonfile = require('jsonfile')
++var util = require('util')
++
++var file = '/tmp/data.json'
++jsonfile.readFile(file, function(err, obj) {
++  console.dir(obj)
++})
++```
++
++
++### readFileSync(filename, [options])
++
++`options`: Pass in any `fs.readFileSync` options or set `reviver` for a [JSON reviver](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse). Also `throws` set to `false` if you don't ever want this method
++to throw on invalid JSON. Will return `null` instead. Defaults to `true`.
++
++```js
++var jsonfile = require('jsonfile')
++var util = require('util')
++
++var file = '/tmp/data.json'
++
++console.dir(jsonfile.readFileSync(file))
++```
++
++
++### writeFile(filename, [options], callback)
++
++`options`: Pass in any `fs.writeFile` options or set `replacer` for a [JSON replacer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify). Can also pass in `spaces`.
++
++
++```js
++var jsonfile = require('jsonfile')
++
++var file = '/tmp/data.json'
++var obj = {name: 'JP'}
++
++jsonfile.writeFile(file, obj, function (err) {
++  console.error(err)
++})
++```
++
++**formatting with spaces:**
++
++```js
++var jsonfile = require('jsonfile')
++
++var file = '/tmp/data.json'
++var obj = {name: 'JP'}
++
++jsonfile.writeFile(file, obj, {spaces: 2}, function(err) {
++  console.error(err)
++})
++```
++
++
++### writeFileSync(filename, [options])
++
++`options`: Pass in any `fs.writeFileSync` options or set `replacer` for a [JSON replacer](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify). Can also pass in `spaces`.
++
++```js
++var jsonfile = require('jsonfile')
++
++var file = '/tmp/data.json'
++var obj = {name: 'JP'}
++
++jsonfile.writeFileSync(file, obj)
++```
++
++**formatting with spaces:**
++
++```js
++var jsonfile = require('jsonfile')
++
++var file = '/tmp/data.json'
++var obj = {name: 'JP'}
++
++jsonfile.writeFileSync(file, obj, {spaces: 2})
++```
++
++
++
++### spaces
++
++Global configuration to set spaces to indent JSON files.
++
++**default:** `null`
++
++```js
++var jsonfile = require('jsonfile')
++
++jsonfile.spaces = 4;
++
++var file = '/tmp/data.json'
++var obj = {name: 'JP'}
++
++// json file has four space indenting now
++jsonfile.writeFile(file, obj, function (err) {
++  console.error(err)
++})
++```
++
++Note, it's bound to `this.spaces`. So, if you do this:
++
++```js
++var myObj = {}
++myObj.writeJsonSync = jsonfile.writeFileSync
++// => this.spaces = null
++```
++
++Could do the following:
++
++```js
++var jsonfile = require('jsonfile')
++jsonfile.spaces = 4
++jsonfile.writeFileSync(file, obj) // will have 4 spaces indentation
++
++var myCrazyObj = {spaces: 32}
++myCrazyObj.writeJsonSync = jsonfile.writeFileSync
++myCrazyObj.writeJsonSync(file, obj) // will have 32 space indentation
++myCrazyObj.writeJsonSync(file, obj, {spaces: 2}) // will have only 2
++```
++
++
++License
++-------
++
++(MIT License)
++
++Copyright 2012-2015, JP Richardson  <jprichardson@gmail.com>
++
++
++
++
++
+diff -ruN npm/node_modules/klaw/assign.js npm/node_modules/klaw/assign.js
+--- npm/node_modules/klaw/assign.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/klaw/assign.js	2015-10-25 12:57:27.000000000 +0000
+@@ -0,0 +1,16 @@
++// simple mutable assign (extracted from fs-extra)
++// I really like object-assign package, but I wanted a lean package with zero deps
++function _assign () {
++  var args = [].slice.call(arguments).filter(function (i) { return i })
++  var dest = args.shift()
++  args.forEach(function (src) {
++    Object.keys(src).forEach(function (key) {
++      dest[key] = src[key]
++    })
++  })
++
++  return dest
++}
++
++// thank you baby Jesus for Node v4 and Object.assign
++module.exports = Object.assign || _assign
+diff -ruN npm/node_modules/klaw/CHANGELOG.md npm/node_modules/klaw/CHANGELOG.md
+--- npm/node_modules/klaw/CHANGELOG.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/klaw/CHANGELOG.md	2015-12-23 22:57:16.000000000 +0000
+@@ -0,0 +1,25 @@
++1.1.3 / 2015-12-23
++------------------
++- bugfix: if `readdir` error, got hung up. See: https://github.com/jprichardson/node-klaw/issues/1
++
++1.1.2 / 2015-11-12
++------------------
++- assert that param `dir` is a `string`
++
++1.1.1 / 2015-10-25
++------------------
++- bug fix, options not being passed
++
++1.1.0 / 2015-10-25
++------------------
++- added `queueMethod` and `pathSorter` to `options` to affect searching strategy.
++
++1.0.0 / 2015-10-25
++------------------
++- removed unused `filter` param
++- bugfix: always set `streamOptions` to `objectMode`
++- simplified, converted from push mode (streams 1) to proper pull mode (streams 3)
++
++0.1.0 / 2015-10-25
++------------------
++- initial release
+diff -ruN npm/node_modules/klaw/index.js npm/node_modules/klaw/index.js
+--- npm/node_modules/klaw/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/klaw/index.js	2015-12-23 22:55:17.000000000 +0000
+@@ -0,0 +1,50 @@
++var assert = require('assert')
++var fs = require('fs')
++var path = require('path')
++var Readable = require('stream').Readable
++var util = require('util')
++var assign = require('./assign')
++
++function Walker (dir, options) {
++  assert.strictEqual(typeof dir, 'string', '`dir` parameter should be of type string. Got type: ' + typeof dir)
++  var defaultStreamOptions = { objectMode: true }
++  var defaultOpts = { queueMethod: 'shift', pathSorter: undefined }
++  options = assign(defaultOpts, options, defaultStreamOptions)
++
++  Readable.call(this, options)
++  this.root = path.resolve(dir)
++  this.paths = [this.root]
++  this.options = options
++}
++util.inherits(Walker, Readable)
++
++Walker.prototype._read = function () {
++  if (this.paths.length === 0) return this.push(null)
++  var self = this
++  var pathItem = this.paths[this.options.queueMethod]()
++
++  fs.lstat(pathItem, function (err, stats) {
++    var item = { path: pathItem, stats: stats }
++    if (err) return self.emit('error', err, item)
++    if (!stats.isDirectory()) return self.push(item)
++
++    fs.readdir(pathItem, function (err, pathItems) {
++      if (err) {
++        self.push(item)
++        return self.emit('error', err, item)
++      }
++
++      pathItems = pathItems.map(function (part) { return path.join(pathItem, part) })
++      if (self.options.pathSorter) pathItems.sort(self.options.pathSorter)
++      pathItems.forEach(function (pi) { self.paths.push(pi) })
++
++      self.push(item)
++    })
++  })
++}
++
++function walk (root, options) {
++  return new Walker(root, options)
++}
++
++module.exports = walk
+diff -ruN npm/node_modules/klaw/.npmignore npm/node_modules/klaw/.npmignore
+--- npm/node_modules/klaw/.npmignore	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/klaw/.npmignore	2015-10-25 13:28:37.000000000 +0000
+@@ -0,0 +1,3 @@
++tests/
++appveyor.yml
++.travis.yml
+diff -ruN npm/node_modules/klaw/package.json npm/node_modules/klaw/package.json
+--- npm/node_modules/klaw/package.json	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/klaw/package.json	2016-03-10 15:17:40.218180000 +0000
+@@ -0,0 +1,85 @@
++{
++  "_args": [
++    [
++      "klaw@^1.0.0",
++      "/home/graingert/npm_patching/npm/node_modules/fs-extra"
++    ]
++  ],
++  "_from": "klaw@>=1.0.0 <2.0.0",
++  "_id": "klaw@1.1.3",
++  "_inCache": true,
++  "_installable": true,
++  "_location": "/klaw",
++  "_nodeVersion": "5.3.0",
++  "_npmUser": {
++    "email": "jprichardson@gmail.com",
++    "name": "jprichardson"
++  },
++  "_npmVersion": "3.3.12",
++  "_phantomChildren": {},
++  "_requested": {
++    "name": "klaw",
++    "raw": "klaw@^1.0.0",
++    "rawSpec": "^1.0.0",
++    "scope": null,
++    "spec": ">=1.0.0 <2.0.0",
++    "type": "range"
++  },
++  "_requiredBy": [
++    "/fs-extra"
++  ],
++  "_resolved": "https://registry.npmjs.org/klaw/-/klaw-1.1.3.tgz",
++  "_shasum": "7da33c6b42f9b3dc9cec00d17f13af017fcc2721",
++  "_shrinkwrap": null,
++  "_spec": "klaw@^1.0.0",
++  "_where": "/home/graingert/npm_patching/npm/node_modules/fs-extra",
++  "author": {
++    "name": "JP Richardson"
++  },
++  "bugs": {
++    "url": "https://github.com/jprichardson/node-klaw/issues"
++  },
++  "dependencies": {},
++  "description": "File system walker with Readable stream interface.",
++  "devDependencies": {
++    "faucet": "0.0.1",
++    "mkdirp": "^0.5.1",
++    "rimraf": "^2.4.3",
++    "standard": "^5.3.1",
++    "tape": "^4.2.2"
++  },
++  "directories": {},
++  "dist": {
++    "shasum": "7da33c6b42f9b3dc9cec00d17f13af017fcc2721",
++    "tarball": "http://registry.npmjs.org/klaw/-/klaw-1.1.3.tgz"
++  },
++  "gitHead": "5f26db5f6e10e13eda95eaaf0e89227f7abee64e",
++  "homepage": "https://github.com/jprichardson/node-klaw#readme",
++  "keywords": [
++    "fs",
++    "fs-extra",
++    "readable",
++    "streams",
++    "walk",
++    "walker"
++  ],
++  "license": "MIT",
++  "main": "index.js",
++  "maintainers": [
++    {
++      "name": "jprichardson",
++      "email": "jprichardson@gmail.com"
++    }
++  ],
++  "name": "klaw",
++  "optionalDependencies": {},
++  "readme": "ERROR: No README data found!",
++  "repository": {
++    "type": "git",
++    "url": "git+https://github.com/jprichardson/node-klaw.git"
++  },
++  "scripts": {
++    "test": "standard && tape tests/**/*.js | faucet"
++  },
++  "version": "1.1.3"
++}
+diff -ruN npm/node_modules/klaw/README.md npm/node_modules/klaw/README.md
+--- npm/node_modules/klaw/README.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/klaw/README.md	2015-11-13 19:35:57.000000000 +0000
+@@ -0,0 +1,250 @@
++Node.js - klaw
++==============
++
++A Node.js file system walker extracted from [fs-extra](https://github.com/jprichardson/node-fs-extra).
++
++[![build status](https://api.travis-ci.org/jprichardson/node-klaw.svg)](http://travis-ci.org/jprichardson/node-klaw)
++[![windows build status](https://ci.appveyor.com/api/projects/status/github/jprichardson/node-klaw?branch=master&svg=true)](https://ci.appveyor.com/project/jprichardson/node-klaw/branch/master)
++
++
++Install
++-------
++
++    npm i --save klaw
++
++
++Name
++----
++
++`klaw` is `walk` backwards :p
++
++
++Usage
++-----
++
++### klaw(directory, [options])
++
++Returns a [Readable stream](https://nodejs.org/api/stream.html#stream_class_stream_readable) that iterates
++through every file and directory starting with `dir` as the root. Every `read()` or `data` event
++returns an object with two properties: `path` and `stats`. `path` is the full path of the file and
++`stats` is an instance of [fs.Stats](https://nodejs.org/api/fs.html#fs_class_fs_stats).
++
++- `directory`: The directory to recursively walk. Type `string`.
++- `options`: [Readable stream options](https://nodejs.org/api/stream.html#stream_new_stream_readable_options) and
++the following:
++  - `queueMethod`: Either `'shift'` or `'pop'`. Type `string`. Default: `'shift'`.
++  - `pathSorter`: Sorting [function for Arrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort). Type `function`.
++
++**Streams 1 (push) example:**
++
++```js
++var klaw = require('klaw')
++
++var items = [] // files, directories, symlinks, etc
++klaw('/some/dir')
++  .on('data', function (item) {
++    items.push(item.path)
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files]
++  })
++```
++
++**Streams 2 & 3 (pull) example:**
++
++```js
++var klaw = require('klaw')
++
++var items = [] // files, directories, symlinks, etc
++klaw('/some/dir')
++  .on('readable', function () {
++    var item
++    while ((item = this.read())) {
++      items.push(item.path)
++    }
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files]
++  })
++```
++
++If you're not sure of the differences on Node.js streams 1, 2, 3 then I'd
++recommend this resource as a good starting point: https://strongloop.com/strongblog/whats-new-io-js-beta-streams3/.
++
++
++### Error Handling
++
++Listen for the `error` event.
++
++Example:
++
++```js
++var klaw = require('klaw')
++klaw('/some/dir')
++  .on('readable', function () {
++    var item
++    while ((item = this.read())) {
++      // do something with the file
++    }
++  })
++  .on('error', function (err, item) {
++    console.log(err.message)
++    console.log(item.path) // the file the error occurred on
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files]
++  })
++
++```
++
++
++### Aggregation / Filtering / Executing Actions (Through Streams)
++
++On many occasions you may want to filter files based upon size, extension, etc.
++Or you may want to aggregate stats on certain file types. Or maybe you want to
++perform an action on certain file types.
++
++You should use the module [`through2`](https://www.npmjs.com/package/through2) to easily
++accomplish this.
++
++Install `through2`:
++
++    npm i --save through2
++
++
++**Example (skipping directories):**
++
++```js
++var klaw = require('klaw')
++var through2 = require('through2')
++
++var excludeDirFilter = through2.obj(function (item, enc, next) {
++  if (!item.stats.isDirectory()) this.push(item)
++  next()
++})
++
++var items = [] // files, directories, symlinks, etc
++klaw('/some/dir')
++  .pipe(excludeDirFilter)
++  .on('data', function (item) {
++    items.push(item.path)
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files without directories]
++  })
++
++```
++
++
++**Example (totaling size of PNG files):**
++
++```js
++var klaw = require('klaw')
++var path = require('path')
++var through2 = require('through2')
++
++var totalPngsInBytes = 0
++var aggregatePngSize = through2.obj(function (item, enc, next) {
++  if (path.extname(item.path) === 'png') {
++    totalPngsInBytes += item.stats.size
++  }
++  this.push(item)
++  next()
++})
++
++klaw('/some/dir')
++  .pipe(aggregatePngSize)
++  .on('data', function (item) {
++    items.push(item.path)
++  })
++  .on('end', function () {
++    console.dir(totalPngsInBytes) // => total of all pngs (bytes)
++  })
++```
++
++
++**Example (deleting all .tmp files):**
++
++```js
++var fs = require('fs')
++var klaw = require('klaw')
++var through2 = require('through2')
++
++var deleteAction = through2.obj(function (item, enc, next) {
++  this.push(item)
++
++  if (path.extname(item.path) === 'tmp') {
++    item.deleted = true
++    fs.unklink(item.path, next)
++  } else {
++    item.deleted = false
++    next()
++  }  
++})
++
++var deletedFiles = []
++klaw('/some/dir')
++  .pipe(deleteAction)
++  .on('data', function (item) {
++    if (!item.deleted) return
++    deletedFiles.push(item.path)
++  })
++  .on('end', function () {
++    console.dir(deletedFiles) // => all deleted files
++  })
++```
++
++You can even chain a bunch of these filters and aggregators together. By using
++multiple pipes.
++
++**Example (using multiple filters / aggregators):**
++
++```js
++klaw('/some/dir')
++  .pipe(filterCertainFiles)
++  .pipe(deleteSomeOtherFiles)
++  .on('end', function () {
++    console.log('all done!')
++  })
++```
++
++**Example passing (piping) through errors:**
++
++Node.js does not `pipe()` errors. This means that the error on one stream, like
++`klaw` will not pipe through to the next. If you want to do this, do the following:
++
++```js
++var klaw = require('klaw')
++var through2 = require('through2')
++
++var excludeDirFilter = through2.obj(function (item, enc, next) {
++  if (!item.stats.isDirectory()) this.push(item)
++  next()
++})
++
++var items = [] // files, directories, symlinks, etc
++klaw('/some/dir')
++  .on('error', function (err) { excludeDirFilter.emit('error', err) }) // forward the error on
++  .pipe(excludeDirFilter)
++  .on('data', function (item) {
++    items.push(item.path)
++  })
++  .on('end', function () {
++    console.dir(items) // => [ ... array of files without directories]
++  })
++```
++
++
++### Searching Strategy
++
++Pass in options for `queueMethod` and `pathSorter` to affect how the file system
++is recursively iterated. See the code for more details, it's less than 50 lines :)
++
++
++
++License
++-------
++
++MIT
++
++Copyright (c) 2015 [JP Richardson](https://github.com/jprichardson)
+diff -ruN npm/node_modules/path-is-absolute/index.js npm/node_modules/path-is-absolute/index.js
+--- npm/node_modules/path-is-absolute/index.js	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/path-is-absolute/index.js	2015-02-17 02:57:30.000000000 +0000
+@@ -0,0 +1,20 @@
++'use strict';
++
++function posix(path) {
++	return path.charAt(0) === '/';
++};
++
++function win32(path) {
++	// https://github.com/joyent/node/blob/b3fcc245fb25539909ef1d5eaa01dbf92e168633/lib/path.js#L56
++	var splitDeviceRe = /^([a-zA-Z]:|[\\\/]{2}[^\\\/]+[\\\/]+[^\\\/]+)?([\\\/])?([\s\S]*?)$/;
++	var result = splitDeviceRe.exec(path);
++	var device = result[1] || '';
++	var isUnc = !!device && device.charAt(1) !== ':';
++
++	// UNC paths are always absolute
++	return !!result[2] || isUnc;
++};
++
++module.exports = process.platform === 'win32' ? win32 : posix;
++module.exports.posix = posix;
++module.exports.win32 = win32;
+diff -ruN npm/node_modules/path-is-absolute/license npm/node_modules/path-is-absolute/license
+--- npm/node_modules/path-is-absolute/license	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/path-is-absolute/license	2014-04-06 16:43:11.000000000 +0100
+@@ -0,0 +1,21 @@
++The MIT License (MIT)
++
++Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (sindresorhus.com)
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in
++all copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++THE SOFTWARE.
+diff -ruN npm/node_modules/path-is-absolute/package.json npm/node_modules/path-is-absolute/package.json
+--- npm/node_modules/path-is-absolute/package.json	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/path-is-absolute/package.json	2016-03-10 15:17:40.210179000 +0000
+@@ -0,0 +1,97 @@
++{
++  "_args": [
++    [
++      "path-is-absolute@^1.0.0",
++      "/home/graingert/npm_patching/npm/node_modules/fs-extra"
++    ]
++  ],
++  "_from": "path-is-absolute@>=1.0.0 <2.0.0",
++  "_id": "path-is-absolute@1.0.0",
++  "_inCache": true,
++  "_installable": true,
++  "_location": "/path-is-absolute",
++  "_nodeVersion": "0.12.0",
++  "_npmUser": {
++    "email": "sindresorhus@gmail.com",
++    "name": "sindresorhus"
++  },
++  "_npmVersion": "2.5.1",
++  "_phantomChildren": {},
++  "_requested": {
++    "name": "path-is-absolute",
++    "raw": "path-is-absolute@^1.0.0",
++    "rawSpec": "^1.0.0",
++    "scope": null,
++    "spec": ">=1.0.0 <2.0.0",
++    "type": "range"
++  },
++  "_requiredBy": [
++    "/fs-extra"
++  ],
++  "_resolved": "https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.0.tgz",
++  "_shasum": "263dada66ab3f2fb10bf7f9d24dd8f3e570ef912",
++  "_shrinkwrap": null,
++  "_spec": "path-is-absolute@^1.0.0",
++  "_where": "/home/graingert/npm_patching/npm/node_modules/fs-extra",
++  "author": {
++    "email": "sindresorhus@gmail.com",
++    "name": "Sindre Sorhus",
++    "url": "sindresorhus.com"
++  },
++  "bugs": {
++    "url": "https://github.com/sindresorhus/path-is-absolute/issues"
++  },
++  "dependencies": {},
++  "description": "Node.js 0.12 path.isAbsolute() ponyfill",
++  "devDependencies": {},
++  "directories": {},
++  "dist": {
++    "shasum": "263dada66ab3f2fb10bf7f9d24dd8f3e570ef912",
++    "tarball": "http://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.0.tgz"
++  },
++  "engines": {
++    "node": ">=0.10.0"
++  },
++  "files": [
++    "index.js"
++  ],
++  "gitHead": "7a76a0c9f2263192beedbe0a820e4d0baee5b7a1",
++  "homepage": "https://github.com/sindresorhus/path-is-absolute",
++  "keywords": [
++    "absolute",
++    "built-in",
++    "check",
++    "core",
++    "detect",
++    "dir",
++    "file",
++    "is",
++    "is-absolute",
++    "isabsolute",
++    "path",
++    "paths",
++    "polyfill",
++    "ponyfill",
++    "shim",
++    "util",
++    "utils"
++  ],
++  "license": "MIT",
++  "maintainers": [
++    {
++      "name": "sindresorhus",
++      "email": "sindresorhus@gmail.com"
++    }
++  ],
++  "name": "path-is-absolute",
++  "optionalDependencies": {},
++  "readme": "ERROR: No README data found!",
++  "repository": {
++    "type": "git",
++    "url": "git+https://github.com/sindresorhus/path-is-absolute.git"
++  },
++  "scripts": {
++    "test": "node test.js"
++  },
++  "version": "1.0.0"
++}
+diff -ruN npm/node_modules/path-is-absolute/readme.md npm/node_modules/path-is-absolute/readme.md
+--- npm/node_modules/path-is-absolute/readme.md	1970-01-01 01:00:00.000000000 +0100
++++ npm/node_modules/path-is-absolute/readme.md	2015-02-17 02:59:45.000000000 +0000
+@@ -0,0 +1,51 @@
++# path-is-absolute [![Build Status](https://travis-ci.org/sindresorhus/path-is-absolute.svg?branch=master)](https://travis-ci.org/sindresorhus/path-is-absolute)
++
++> Node.js 0.12 [`path.isAbsolute()`](http://nodejs.org/api/path.html#path_path_isabsolute_path) ponyfill
++
++> Ponyfill: A polyfill that doesn't overwrite the native method
++
++
++## Install
++
++```
++$ npm install --save path-is-absolute
++```
++
++
++## Usage
++
++```js
++var pathIsAbsolute = require('path-is-absolute');
++
++// Linux
++pathIsAbsolute('/home/foo');
++//=> true
++
++// Windows
++pathIsAbsolute('C:/Users/');
++//=> true
++
++// Any OS
++pathIsAbsolute.posix('/home/foo');
++//=> true
++```
++
++
++## API
++
++See the [`path.isAbsolute()` docs](http://nodejs.org/api/path.html#path_path_isabsolute_path).
++
++### pathIsAbsolute(path)
++
++### pathIsAbsolute.posix(path)
++
++The Posix specific version.
++
++### pathIsAbsolute.win32(path)
++
++The Windows specific version.
++
++
++## License
++
++MIT © [Sindre Sorhus](http://sindresorhus.com)
+diff -ruN npm/package.json npm/package.json
+--- npm/package.json	2016-03-02 22:20:47.000000000 +0000
++++ npm/package.json	2016-03-10 15:17:40.298182000 +0000
+@@ -42,6 +42,7 @@
+     "config-chain": "~1.1.10",
+     "dezalgo": "~1.0.3",
+     "editor": "~1.0.0",
++    "fs-extra": "^0.26.5",
+     "fs-vacuum": "~1.2.7",
+     "fs-write-stream-atomic": "~1.0.8",
+     "fstream": "~1.0.8",
+@@ -118,6 +119,7 @@
+     "debuglog",
+     "dezalgo",
+     "editor",
++    "fs-extra",
+     "fs-vacuum",
+     "fs-write-stream-atomic",
+     "fstream",
