@@ -6,6 +6,6 @@ npm:master.
 Simply add the following to your Dockerfile:
 ```
 RUN apt-get update && apt-get install -y curl patch
-RUN cd /usr/lib/node_modules/ && \
+RUN cd $("r=require,d=r('path').dirname;d(d(r.resolve('npm/package.json')))") && \
     curl https://raw.githubusercontent.com/graingert/npm-docker/master/npm-docker.patch | patch -s -p0
 ```
